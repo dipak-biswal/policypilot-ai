@@ -1,6 +1,7 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from pydantic import BaseModel
 from app.pdf_utils import extract_pages
+from app.vector_store import index_pages, search
 
 app = FastAPI(title="PolicyPilot AI")
 
@@ -13,6 +14,7 @@ class PageText(BaseModel):
 class DocumentResponse(BaseModel):
     filename: str
     page_count: int
+    chunks_indexed: int
     pages: list[PageText]
 
 
@@ -33,9 +35,19 @@ async def upload_document(file: UploadFile = File(...)) -> DocumentResponse:
 
     file_bytes = await file.read()
     pages = extract_pages(file_bytes)
+    filename = file.filename or "unknown.pdf"
+    chunks_indexed = index_pages(filename, pages)
 
     return DocumentResponse(
-        filename=file.filename or "unknown.pdf",
+        filename=filename,
         page_count=len(pages),
+        chunks_indexed=chunks_indexed,
         pages=[PageText(**p) for p in pages],
     )
+
+
+@app.get("/search")
+def search_chunks(q: str) -> list[dict]:
+    results = search(q)
+
+    return [{"text": d.page_content[:300], **d.metadata} for d in results]
