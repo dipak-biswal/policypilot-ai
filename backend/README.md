@@ -20,3 +20,4 @@ Agentic RAG app: upload insurance/health policy PDFs, chat with them, and get ci
 - [x] Milestone 4: RAG /chat endpoint with grounded answers, relevance-score filtering and page citations
 - [x] Milestone 5: Modular React + TypeScript UI (api/hooks/components) with PDF upload and citation chips
 - [x] Milestone 5b: Token streaming over SSE (FastAPI StreamingResponse + fetch ReadableStream in React)
+- [x] Milestone 6: LangGraph agent (router → retrieval → qa / summarizer / report generator) with structured-output reports and follow-up suggestions
