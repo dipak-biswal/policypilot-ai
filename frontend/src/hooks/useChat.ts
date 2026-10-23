@@ -45,5 +45,9 @@ export function useChat(source: string | null) {
     }
   }
 
-  return { messages, loading, send };
+  function clear() {
+    setMessages([]);
+  }
+
+  return { messages, loading, send, clear };
 }

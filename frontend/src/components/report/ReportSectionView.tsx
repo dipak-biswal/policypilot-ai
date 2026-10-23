@@ -5,7 +5,7 @@ import { TableSection } from "./TableSection";
 
 export const ReportSectionView = ({ section }: { section: ReportSection }) => {
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    <section className="rounded-xl border border-slate-200 dark:bg-slate-900 dark:border-slate-700 p-4 shadow-sm">
       <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-800">
         <span className="h-4 w-1 rounded-full bg-indigo-500" />
         {section.title}

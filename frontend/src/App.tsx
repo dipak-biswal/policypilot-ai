@@ -6,11 +6,12 @@ import { useUpload } from "./hooks/useUpload";
 import { useDocuments } from "./hooks/useDocuments";
 import { useChat } from "./hooks/useChat";
 import { Layout } from "./components/Layout";
+import { ChatHeader } from "./components/ChatHeader";
 
 export default function App() {
   const { documents, selected, setSelected, addDocument } = useDocuments();
   const { upload, status, uploading } = useUpload();
-  const { messages, loading, send } = useChat(selected);
+  const { messages, loading, send, clear } = useChat(selected);
 
   const handleUpload = async (file: File) => {
     const filename = await upload(file);
@@ -34,6 +35,12 @@ export default function App() {
         </>
       }
     >
+      <ChatHeader
+        document={selected}
+        onNewChat={clear}
+        canClear={messages.length > 0 && !loading}
+      />
+
       <ChatWindow messages={messages} loading={loading} onFollowUp={send} />
       <ChatInput onSend={send} disabled={loading || !selected} />
     </Layout>

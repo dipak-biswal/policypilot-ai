@@ -9,7 +9,7 @@ type Props = {
 
 export function ReportView({ report, onFollowUp }: Props) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 shadow-sm">
+    <div className="overflow-hidden rounded-2xl border border-slate-200 dark:bg-slate-900 dark:border-slate-700 shadow-sm">
       <div className="bg-linear-to-r from-indigo-600 to-violet-600 px-5 py-4 text-white">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-indigo-200">
           📊 AI Report

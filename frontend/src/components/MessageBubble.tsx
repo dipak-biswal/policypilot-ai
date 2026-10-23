@@ -2,13 +2,20 @@ import type { Message } from "../types";
 import { CitationChips } from "./CitationChips";
 import { ReportView } from "./report/ReportView";
 import { Markdown } from "./Markdown";
+import { TypingDots } from "./TypingDots";
+import { CopyButton } from "./CopyButton";
 
 type Props = {
   message: Message;
   onFollowUp: (q: string) => void;
+  streaming?: boolean;
 };
 
-export function Messagebubble({ message, onFollowUp }: Props) {
+export function Messagebubble({
+  message,
+  onFollowUp,
+  streaming = false,
+}: Props) {
   if (message.report) {
     return (
       <div className="flex gap-3">
@@ -33,15 +40,27 @@ export function Messagebubble({ message, onFollowUp }: Props) {
   }
 
   return (
-    <div className="flex gap-3">
+    <div className="flex gap-3 dark:prose-invert">
       <Avatar />
       <div className="max-w-[80%] min-w-0">
         <div className="rounded-2xl rounded-tl-sm border border-slate-200 bg-white px-4 py-3 text-sm leading-relaxed shadow-sm">
-          <Markdown text={message.text} />
+          {message.text === "" && streaming ? (
+            <TypingDots />
+          ) : (
+            <>
+              <Markdown text={message.text} />
+              {streaming && (
+                <span className="ml-0.5 inline-block h-4 w-1.5 translate-y-0.5 animate-pulse bg-indigo-500" />
+              )}
+            </>
+          )}
         </div>
-        {message.citations && message.citations.length > 0 && (
-          <div className="mt-2">
-            <CitationChips citations={message.citations} />
+        {!streaming && message.text && (
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            {message.citations && message.citations.length > 0 && (
+              <CitationChips citations={message.citations} />
+            )}
+            <CopyButton text={message.text} />
           </div>
         )}
       </div>
