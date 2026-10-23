@@ -6,7 +6,7 @@ from slowapi.util import get_remote_address
 
 def client_ip(request):
     forwarded = request.headers.get("x-forwarded-for")
-    return forwarded.split(",").strip() if forwarded else get_remote_address(request)
+    return forwarded.split(",")[0].strip() if forwarded else get_remote_address(request)
 
 
 limiter = Limiter(
