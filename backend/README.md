@@ -17,3 +17,4 @@ Agentic RAG app: upload insurance/health policy PDFs, chat with them, and get ci
 - [x] Milestone 1: FastAPI server with typed /health endpoint
 - [x] Milestone 2: PDF upload endpoint with page-wise text extraction (pypdf)
 - [x] Milestone 3: Chunking (RecursiveCharacterTextSplitter), OpenAI embeddings, ChromaDB vector search with page metadata
+- [x] Milestone 4: RAG /chat endpoint with grounded answers, relevance-score filtering and page citations

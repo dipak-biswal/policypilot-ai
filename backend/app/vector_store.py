@@ -33,5 +33,6 @@ def index_pages(filename: str, pages: list[dict]) -> int:
     return len(chunks)
 
 
-def search(query: str, k: int = 4) -> list[Document]:
-    return vector_store.similarity_search(query, k=k)
+def search(query: str, k: int = 4, min_score: float = 0.3) -> list[Document]:
+    results = vector_store.similarity_search_with_relevance_scores(query, k=k)
+    return [doc for doc, score in results if score >= min_score]

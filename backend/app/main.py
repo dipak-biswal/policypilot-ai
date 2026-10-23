@@ -2,8 +2,14 @@ from fastapi import FastAPI, File, UploadFile, HTTPException
 from pydantic import BaseModel
 from app.pdf_utils import extract_pages
 from app.vector_store import index_pages, search
+from app.rag import answer_question
 
 app = FastAPI(title="PolicyPilot AI")
+
+
+class HealthResponse(BaseModel):
+    status: str
+    service: str
 
 
 class PageText(BaseModel):
@@ -18,9 +24,19 @@ class DocumentResponse(BaseModel):
     pages: list[PageText]
 
 
-class HealthResponse(BaseModel):
-    status: str
-    service: str
+class ChatRequest(BaseModel):
+    question: str
+
+
+class Citations(BaseModel):
+    source: str
+    page: int
+    snippet: str
+
+
+class ChatResponse(BaseModel):
+    answer: str
+    citations: list[Citations]
 
 
 @app.get("/health", response_model=HealthResponse)
@@ -51,3 +67,8 @@ def search_chunks(q: str) -> list[dict]:
     results = search(q)
 
     return [{"text": d.page_content[:300], **d.metadata} for d in results]
+
+
+@app.post("/chat", response_model=ChatResponse)
+def chat(req: ChatRequest) -> ChatResponse:
+    return ChatResponse(**answer_question(req.question))
