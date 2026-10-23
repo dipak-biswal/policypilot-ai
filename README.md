@@ -1,54 +1,69 @@
-# PolicyPilot AI
-
-Agentic RAG app: upload insurance/health policy PDFs, chat with them, and get cited answers and AI-generated summary reports.
-
-## Tech Stack
-
-- Frontend: React + TypeScript + Vite
-- Backend: Python, FastAPI, uv
-- AI: LangChain, LangGraph, OpenAI
-- Vector DB: ChromaDB → PostgreSQL + pgvector
-- Quality: LangSmith, RAGAS, pytest
-- DevOps: Docker, GitHub Actions
-
-## Progress
-
-- [x] Milestone 0: Repo + Python env setup with uv
-- [x] Milestone 1: FastAPI server with typed /health endpoint
-- [x] Milestone 2: PDF upload endpoint with page-wise text extraction (pypdf)
-- [x] Milestone 3: Chunking (RecursiveCharacterTextSplitter), OpenAI embeddings, ChromaDB vector search with page metadata
-- [x] Milestone 4: RAG /chat endpoint with grounded answers, relevance-score filtering and page citations
-- [x] Milestone 5: Modular React + TypeScript UI (api/hooks/components) with PDF upload and citation chips
-- [x] Milestone 5b: Token streaming over SSE (FastAPI StreamingResponse + fetch ReadableStream in React)
-- [x] Milestone 6: LangGraph agent (router → retrieval → qa / summarizer / report generator) with structured-output reports and follow-up suggestions
-- [x] Milestone 7: Dynamic report rendering (layout-driven components) + clickable follow-up suggestions
-- [x] Milestone 8a: LangSmith tracing of every graph run (router decision, retrieved chunks, latency, tokens)
-- [x] Milestone 8b: pytest suite (citation logic, PDF extraction, API endpoints with mocked agent)
-- [x] Milestone 8c: RAGAS evaluation (16-question golden set, retrieval hit rate, off-topic refusal, router accuracy)
-- [x] Milestone 8d: Agent streaming (POST /agent/stream, SSE with intent/token/report/citations events via LangGraph stream_mode)
-- [x] Milestone 9a/9b: Postgres + pgvector via docker-compose, switchable VECTOR_BACKEND (chroma | pgvector); eval parity (recall 0.95)
-- [x] Milestone 9c: Full stack in Docker (backend uv image, frontend multi-stage Vite + nginx, one-command `docker compose up`)
-- [x] Milestone 10a: GitHub Actions CI (pytest + frontend type-check/build on every push)
-- CI/CD: GitHub Actions runs pytest + frontend build, then auto-deploys to EC2 over SSH on every push to main
-- [x] Add-on: Per-document filtering (metadata filter on source, React document picker)
-- [x] Add-on: Rate limiting (slowapi, 10/min chat, 5/hour uploads, per real client IP behind nginx) with friendly 429 messages in the UI
-
-## Design decisions
-
-### Evaluation-driven tuning
-
-| Change                                          | Hit rate | Faithfulness | Relevancy | Recall |
-| ----------------------------------------------- | -------- | ------------ | --------- | ------ |
-| Baseline (k=4, min_score 0.3, 1000/200 chunks)  | 0.69     | 0.62         | 0.57      | 0.62   |
-| k=6, min_score 0.2                              | 1.00     | 0.91         | 0.71      | 0.85   |
-| Strip header/footer boilerplate, 800/150 chunks | 1.00     | 0.96         | 0.81      | 0.95   |
-
-Off-topic refusal 2/2 and router accuracy 5/5 throughout.
-
-## Run with Docker
-
-1. Copy `backend/.env.example` to `backend/.env` and add your OpenAI key
-2. `docker compose up -d --build`
-3. Open http://localhost:5173
+# PolicyPilot AI 🛡️
 
 ![CI](https://github.com/dipak-biswal/policypilot-ai/actions/workflows/ci.yml/badge.svg)
+
+Agentic RAG app for insurance/health policy PDFs: upload a policy, chat with it, get **page-cited answers**, and generate **AI summary reports** with dynamic layouts and follow-up suggestions.
+
+![Demo](docs/demo.gif)
+
+## Features
+- Upload PDFs, pick a document, and chat with streaming answers and `[Page N]` citations
+- LangGraph agent routes each question to Q&A, a summary or a structured report
+- Reports render as bullets, tables or key-value layouts, with follow-up question chips
+- Answers only from the uploaded document, and refuses off-topic questions
+- Rate limited per client IP; CI/CD auto-deploys to AWS EC2
+
+## Architecture
+```mermaid
+flowchart LR
+  U[React + TS UI] -->|SSE /api/agent/stream| N[nginx]
+  N --> F[FastAPI]
+  F --> G[LangGraph agent]
+  G --> R{Router}
+  R -->|qa| QA[Retrieval + QA]
+  R -->|summary| S[Summarizer]
+  R -->|report| RP[Report generator]
+  QA & S & RP --> V[(Postgres + pgvector)]
+  G --> O[OpenAI gpt-4o-mini + embeddings]
+  G -.-> L[LangSmith tracing]
+```
+
+## Tech stack
+| Layer | Tech |
+|---|---|
+| Frontend | React, TypeScript, Vite, SSE streaming |
+| Backend | Python 3.12, FastAPI, uv, slowapi |
+| AI | LangChain, LangGraph, OpenAI |
+| Vector DB | ChromaDB (local) → PostgreSQL + pgvector |
+| Quality | pytest, RAGAS, LangSmith |
+| DevOps | Docker, docker compose, nginx, GitHub Actions, AWS EC2 |
+
+## Evaluation (RAGAS, 16 Q&A from a public policy PDF)
+| Stage | Page hit | Faithfulness | Answer relevancy | Context recall |
+|---|---|---|---|---|
+| Baseline | 0.69 | 0.62 | 0.57 | 0.62 |
+| k=6, min score 0.2 | 1.00 | 0.91 | 0.71 | 0.85 |
+| Text cleaning + 800/150 chunks | 1.00 | 0.96 | 0.81 | 0.95 |
+| pgvector | 1.00 | 0.90 | 0.81 | 0.95 |
+
+Off-topic refusal 2/2, router accuracy 5/5.
+
+## Screenshots
+| Chat with citations | Report |
+|---|---|
+| ![](docs/screenshots/chat.png) | ![](docs/screenshots/report.png) |
+
+## Run locally
+```bash
+cp backend/.env.example backend/.env   # add your OPENAI_API_KEY
+docker compose up --build
+# UI: http://localhost:5173  API docs: http://localhost:8000/docs
+```
+
+## Key engineering decisions
+- **Eval-driven tuning:** used RAGAS scores to pick chunk size, k and score threshold
+- **Streaming:** LangGraph `stream_mode=["messages","updates"]` turned into typed SSE events (a TS discriminated union)
+- **Swappable vector store:** a `VECTOR_BACKEND` env switch between Chroma and pgvector
+- **Prod setup:** nginx proxies `/api` with buffering off for SSE; only port 80 is public
+
+> Uses only public sample policy documents.
