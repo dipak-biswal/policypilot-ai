@@ -6,7 +6,11 @@ from app.pdf_utils import extract_pages
 from app.vector_store import index_pages, search
 from app.rag import answer_question, stream_answer
 
+from app.routers.agent import router as agent_router
+
 app = FastAPI(title="PolicyPilot AI")
+
+app.include_router(agent_router)
 
 app.add_middleware(
     CORSMiddleware,
