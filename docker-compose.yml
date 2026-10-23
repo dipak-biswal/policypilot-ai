@@ -15,5 +15,29 @@ services:
       interval: 5s
       retries: 5
 
+  backend:
+    build: ./backend
+    container_name: policypilot-backend
+    env_file: ./backend/.env
+    environment:
+      DATABASE_URL: postgresql+psycopg://policypilot:policypilot@db:5432/policypilot
+      VECTOR_PASSWORD: pgvector
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: http://localhost:8000
+    container_name: policypilot-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
 volumes:
   pgdata:

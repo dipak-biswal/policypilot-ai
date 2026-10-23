@@ -27,6 +27,7 @@ Agentic RAG app: upload insurance/health policy PDFs, chat with them, and get ci
 - [x] Milestone 8c: RAGAS evaluation (16-question golden set, retrieval hit rate, off-topic refusal, router accuracy)
 - [x] Milestone 8d: Agent streaming (POST /agent/stream, SSE with intent/token/report/citations events via LangGraph stream_mode)
 - [x] Milestone 9a/9b: Postgres + pgvector via docker-compose, switchable VECTOR_BACKEND (chroma | pgvector); eval parity (recall 0.95)
+- [x] Milestone 9c: Full stack in Docker (backend uv image, frontend multi-stage Vite + nginx, one-command `docker compose up`)
 
 ## Design decisions
 
@@ -39,3 +40,9 @@ Agentic RAG app: upload insurance/health policy PDFs, chat with them, and get ci
 | Strip header/footer boilerplate, 800/150 chunks | 1.00     | 0.96         | 0.81      | 0.95   |
 
 Off-topic refusal 2/2 and router accuracy 5/5 throughout.
+
+## Run with Docker
+
+1. Copy `backend/.env.example` to `backend/.env` and add your OpenAI key
+2. `docker compose up -d --build`
+3. Open http://localhost:5173
