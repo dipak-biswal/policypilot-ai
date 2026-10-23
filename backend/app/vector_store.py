@@ -1,5 +1,7 @@
+import os
 from dotenv import load_dotenv
 from langchain_chroma import Chroma
+from langchain_postgres import PGVector
 from langchain_core.documents import Document
 from langchain_openai import OpenAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -11,11 +13,23 @@ load_dotenv()
 
 embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
 
-vector_store = Chroma(
-    collection_name="policies",
-    embedding_function=embeddings,
-    persist_directory="./chroma_db",
-)
+
+def build_vector_store():
+    if os.getenv("VECTOR_BACKEND", "CHROMA") == "pgvector":
+        return PGVector(
+            embeddings=embeddings,
+            collection_name="policies",
+            connection=os.environ["DATABASE_URL"],
+            use_jsonb=True,
+        )
+    return Chroma(
+        collection_name="policies",
+        embedding_function=embeddings,
+        persist_directory="./chroma_db",
+    )
+
+
+vector_store = build_vector_store()
 
 splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=150)
 

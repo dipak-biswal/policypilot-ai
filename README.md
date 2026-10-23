@@ -26,6 +26,7 @@ Agentic RAG app: upload insurance/health policy PDFs, chat with them, and get ci
 - [x] Milestone 8b: pytest suite (citation logic, PDF extraction, API endpoints with mocked agent)
 - [x] Milestone 8c: RAGAS evaluation (16-question golden set, retrieval hit rate, off-topic refusal, router accuracy)
 - [x] Milestone 8d: Agent streaming (POST /agent/stream, SSE with intent/token/report/citations events via LangGraph stream_mode)
+- [x] Milestone 9a/9b: Postgres + pgvector via docker-compose, switchable VECTOR_BACKEND (chroma | pgvector); eval parity (recall 0.95)
 
 ## Design decisions
 
