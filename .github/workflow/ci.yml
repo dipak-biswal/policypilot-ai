@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    env:
+      OPENAI_API_KEY: sk-test-dummy
+      VECTOR_BACKEND: chroma
+      LANGSMITH_TRACING: "false"
+
+    steps:
+      - uses: action/checkout@v4
+      - uses: astral-sh/setup#v6
+      - run: uv python install 3.12
+      - run: uv sync --frozen
+      - run: uv run pytest -v
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: action/checkout@v4
+      - uses: action/setup-node#v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run build

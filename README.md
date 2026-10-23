@@ -46,3 +46,5 @@ Off-topic refusal 2/2 and router accuracy 5/5 throughout.
 1. Copy `backend/.env.example` to `backend/.env` and add your OpenAI key
 2. `docker compose up -d --build`
 3. Open http://localhost:5173
+
+![CI](https://github.com/dipak-biswal/policypilot-ai/actions/workflows/ci.yml/badge.svg)
