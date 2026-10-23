@@ -1,9 +1,10 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from app.pdf_utils import extract_pages
 from app.vector_store import index_pages, search
-from app.rag import answer_question
+from app.rag import answer_question, stream_answer
 
 app = FastAPI(title="PolicyPilot AI")
 
@@ -80,3 +81,10 @@ def search_chunks(q: str) -> list[dict]:
 @app.post("/chat", response_model=ChatResponse)
 def chat(req: ChatRequest) -> ChatResponse:
     return ChatResponse(**answer_question(req.question))
+
+
+@app.post("/chat/stream")
+def chat_stream(req: ChatRequest) -> StreamingResponse:
+    return StreamingResponse(
+        stream_answer(req.question), media_type="text/event-stream"
+    )

@@ -1,8 +1,14 @@
 import re
+import json
+from collections.abc import Iterator
+
+from langchain_core.documents import Document
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 
 from app.vector_store import search
+
+NOT_FOUND = "I couldn't find this in the uploaded policy."
 
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 
@@ -22,29 +28,55 @@ prompt = ChatPromptTemplate.from_messages(
 chain = prompt | llm
 
 
-def answer_question(question: str) -> dict:
-    docs = search(question, k=4)
+def build_context(docs: list[Document]) -> str:
+    return "\n\n".join(f"[Page {d.metadata['page']}] {d.page_content}" for d in docs)
 
-    if not docs:
-        return {
-            "answer": "I couldn't find this in the uploaded policy",
-            "citations": [],
-        }
 
-    context = "\n\n".join(f"[Page {d.metadata['page']}] {d.page_content}" for d in docs)
-
-    response = chain.invoke({"context": context, "question": question})
-    answer = response.content
-    citated_pages = {int(p) for p in re.findall(r"\[Page (\d+)\]", answer)}
-
-    citations = [
+def extract_citations(answer: str, docs: list[Document]) -> list[dict]:
+    cited_pages = {int(p) for p in re.findall(r"\[Page (\d+)\]", answer)}
+    return [
         {
             "source": d.metadata["source"],
             "page": d.metadata["page"],
             "snippet": d.page_content[:200],
         }
         for d in docs
-        if d.metadata["page"] in citated_pages
+        if d.metadata["page"] in cited_pages
     ]
 
-    return {"answer": response.content, "citations": citations}
+
+def answer_question(question: str) -> dict:
+    docs = search(question, k=4)
+
+    if not docs:
+        return {
+            "answer": NOT_FOUND,
+            "citations": [],
+        }
+
+    response = chain.invoke({"context": build_context(docs), "question": question})
+
+    return {
+        "answer": response.content,
+        "citations": extract_citations(response.content, docs),
+    }
+
+
+def sse(event: str, data) -> str:
+    return f"event: {event}\ndata: {json.dumps(data)}\n\n"
+
+
+def stream_answer(question: str) -> Iterator[str]:
+    docs = search(question)
+    if not docs:
+        yield sse("token", NOT_FOUND)
+        yield sse("citations", [])
+        yield sse("done", None)
+        return
+    full_answer = ""
+    for chunk in chain.stream({"context": build_context(docs), "question": question}):
+        if chunk.content:
+            full_answer += chunk.content
+            yield sse("token", chunk.content)
+    yield sse("citations", extract_citations(full_answer, docs))
+    yield sse("done", None)
