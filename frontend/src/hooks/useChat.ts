@@ -5,6 +5,7 @@ import {
   // runAgent,
   streamAgent,
 } from "../api/agent";
+import { makeId } from "../utils/id";
 
 export function useChat() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -16,10 +17,10 @@ export function useChat() {
 
   async function send(question: string) {
     if (!question.trim()) return;
-    const assistantId = crypto.randomUUID();
+    const assistantId = makeId();
     setMessages((m) => [
       ...m,
-      { id: crypto.randomUUID(), role: "user", text: question },
+      { id: makeId(), role: "user", text: question },
       { id: assistantId, role: "assistant", text: "" },
     ]);
     setLoading(true);
