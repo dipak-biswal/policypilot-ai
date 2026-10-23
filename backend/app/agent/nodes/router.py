@@ -4,7 +4,7 @@ from app.agent.llm import llm
 from app.agent.state import AgentState, Intent
 
 
-class RouteDecesion(BaseModel):
+class RouteDecision(BaseModel):
     intent: Intent = Field(
         description=(
             "qa: a specific question about the policy; "
@@ -14,7 +14,7 @@ class RouteDecesion(BaseModel):
     )
 
 
-router_llm = llm.with_structured_output(RouteDecesion)
+router_llm = llm.with_structured_output(RouteDecision)
 
 
 def router_node(state: AgentState) -> AgentState:

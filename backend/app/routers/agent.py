@@ -1,5 +1,7 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
+from fastapi.responses import StreamingResponse
+from app.agent.stream import stream_agent
 
 from app.agent.graph import graph
 
@@ -20,3 +22,8 @@ def run_agent(req: AgentRequest) -> dict:
         "citations": result.get("citations", []),
         "report": result.get("report"),
     }
+
+
+@router.post("/stream")
+def agent_stream(req: AgentRequest):
+    return StreamingResponse(stream_agent(req.question), media_type="text/event-stream")
