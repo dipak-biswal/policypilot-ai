@@ -20,7 +20,7 @@ function App() {
     >
       <h1>PolicyPilot AI</h1>
       <UploadPanel status={status} uploading={uploading} onUpload={upload} />
-      <ChatWindow messages={messages} loading={loading} />
+      <ChatWindow messages={messages} loading={loading} onFollowUp={send} />
       <ChatInput disabled={loading} onSend={send} />
     </div>
   );

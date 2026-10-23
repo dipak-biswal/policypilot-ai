@@ -3,9 +3,11 @@ import { Messagebubble } from "./MessageBubble";
 export function ChatWindow({
   messages,
   loading,
+  onFollowUp,
 }: {
   messages: Message[];
   loading: boolean;
+  onFollowUp: (q: string) => void;
 }) {
   return (
     <div
@@ -17,7 +19,7 @@ export function ChatWindow({
       }}
     >
       {messages.map((m) => (
-        <Messagebubble key={m.id} message={m} />
+        <Messagebubble key={m.id} message={m} onFollowUp={onFollowUp} />
       ))}
       {loading && messages.at(-1)?.text === "" && <p>Thinking...</p>}
     </div>

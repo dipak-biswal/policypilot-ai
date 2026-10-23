@@ -1,6 +1,7 @@
 import { useState } from "react";
-import type { Citation, Message } from "../types";
-import { streamQuestion } from "../api/chat";
+import type { Message } from "../types";
+// import { streamQuestion } from "../api/chat";
+import { runAgent } from "../api/agent";
 
 export function useChat() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -20,37 +21,22 @@ export function useChat() {
     ]);
     setLoading(true);
 
-    //   try {
-    //     const res = await askQuestion(question);
-    //     setMessages((m) => [
-    //       ...m,
-    //       {
-    //         id: crypto.randomUUID(),
-    //         role: "assistant",
-    //         text: res.answer,
-    //         citations: res.citations,
-    //       },
-    //     ]);
-    //   } catch (error) {
-    //     setMessages((m) => [
-    //       ...m,
-    //       {
-    //         id: crypto.randomUUID(),
-    //         role: "assistant",
-    //         text: `Error: ${(error as Error).message}`,
-    //       },
-    //     ]);
-    //   } finally {
-    //     setLoading(false);
-    //   }
-
+    // try {
+    //   await streamQuestion(question, {
+    //     onToken: (token) =>
+    //       updateMessage(assistantId, (m) => ({ ...m, text: m.text + token })),
+    //     onCitations: (citations: Citation[]) =>
+    //       updateMessage(assistantId, (m) => ({ ...m, citations })),
+    //   });
+    // }
     try {
-      await streamQuestion(question, {
-        onToken: (token) =>
-          updateMessage(assistantId, (m) => ({ ...m, text: m.text + token })),
-        onCitations: (citations: Citation[]) =>
-          updateMessage(assistantId, (m) => ({ ...m, citations })),
-      });
+      const res = await runAgent(question);
+      updateMessage(assistantId, (m) => ({
+        ...m,
+        text: res.answer,
+        citations: res.citations,
+        report: res.report,
+      }));
     } catch (error) {
       updateMessage(assistantId, (m) => ({
         ...m,

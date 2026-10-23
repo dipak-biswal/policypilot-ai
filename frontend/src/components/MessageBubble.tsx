@@ -1,7 +1,20 @@
 import type { Message } from "../types";
 import { CitationChips } from "./CitationChips";
+import { ReportView } from "./report/ReportView";
 
-export function Messagebubble({ message }: { message: Message }) {
+type Props = {
+  message: Message;
+  onFollowUp: (q: string) => void;
+};
+
+export function Messagebubble({ message, onFollowUp }: Props) {
+  if (message.report)
+    return (
+      <div style={{ margin: "12px 0" }}>
+        <ReportView report={message.report} onFollowUp={onFollowUp} />
+      </div>
+    );
+
   const isUser = message.role === "user";
   return (
     <div style={{ margin: "12px 0", textAlign: isUser ? "right" : "left" }}>
