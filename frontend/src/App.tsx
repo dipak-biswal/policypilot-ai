@@ -5,6 +5,7 @@ import { ChatInput } from "./components/ChatInput";
 import { useUpload } from "./hooks/useUpload";
 import { useDocuments } from "./hooks/useDocuments";
 import { useChat } from "./hooks/useChat";
+import { Layout } from "./components/Layout";
 
 export default function App() {
   const { documents, selected, setSelected, addDocument } = useDocuments();
@@ -17,34 +18,24 @@ export default function App() {
   };
 
   return (
-    <div
-      style={{
-        maxWidth: 900,
-        margin: "0 auto",
-        padding: 16,
-        fontFamily: "system-ui, sans-serif",
-      }}
+    <Layout
+      sidebar={
+        <>
+          <UploadPanel
+            onUpload={handleUpload}
+            status={status}
+            uploading={uploading}
+          />
+          <DocumentPicker
+            documents={documents}
+            selected={selected}
+            onSelect={setSelected}
+          />
+        </>
+      }
     >
-      <h1 style={{ marginBottom: 4 }}>PolicyPilot AI</h1>
-      <p style={{ marginTop: 0, color: "#666" }}>
-        Upload a policy PDF and ask questions with cited answers.
-      </p>
-
-      <UploadPanel
-        onUpload={handleUpload}
-        status={status}
-        uploading={uploading}
-      />
-
-      <DocumentPicker
-        documents={documents}
-        selected={selected}
-        onSelect={setSelected}
-      />
-
       <ChatWindow messages={messages} loading={loading} onFollowUp={send} />
-
       <ChatInput onSend={send} disabled={loading || !selected} />
-    </div>
+    </Layout>
   );
 }

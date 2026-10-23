@@ -1,28 +1,24 @@
-export function FollowUpChips({
-  questions,
-  onPick,
-}: {
+type Props = {
   questions: string[];
   onPick: (q: string) => void;
-}) {
+};
+
+export function FollowUpChips({ questions, onPick }: Props) {
+  if (questions.length === 0) return null;
+
   return (
-    <div
-      style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}
-    >
+    <div className="flex flex-wrap gap-2">
       {questions.map((q) => (
         <button
           key={q}
+          type="button"
           onClick={() => onPick(q)}
-          style={{
-            textAlign: "left",
-            padding: "6px 10px",
-            borderRadius: 8,
-            border: "1px solid #c7d2fe",
-            background: "#eef2ff",
-            cursor: "pointer",
-          }}
+          className="group inline-flex items-center gap-1.5 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-left text-xs font-medium text-indigo-700 transition hover:border-indigo-400 hover:bg-indigo-100"
         >
           💡 {q}
+          <span className="opacity-0 -translate-x-1 transition group-hover:opacity-100 group-hover:translate-x-0">
+            →
+          </span>
         </button>
       ))}
     </div>
