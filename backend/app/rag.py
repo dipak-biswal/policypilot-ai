@@ -33,15 +33,14 @@ def build_context(docs: list[Document]) -> str:
 
 
 def extract_citations(answer: str, docs: list[Document]) -> list[dict]:
-    cited_pages = {int(p) for p in re.findall(r"\[Page (\d+)\]", answer)}
+    cited_pages = {int(p) for p in re.findall(r"Page (\d+)", answer)}
     citations: dict[int, dict] = {}
-
     for d in docs:
         page = d.metadata["page"]
         if page in cited_pages and page not in citations:
             citations[page] = {
                 "source": d.metadata["source"],
-                "page": d.metadata["page"],
+                "page": page,
                 "snippet": d.page_content[:200],
             }
     return sorted(citations.values(), key=lambda c: c["page"])
