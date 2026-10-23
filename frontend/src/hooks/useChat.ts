@@ -1,7 +1,10 @@
 import { useState } from "react";
 import type { Message } from "../types";
 // import { streamQuestion } from "../api/chat";
-import { runAgent } from "../api/agent";
+import {
+  // runAgent,
+  streamAgent,
+} from "../api/agent";
 
 export function useChat() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -30,13 +33,22 @@ export function useChat() {
     //   });
     // }
     try {
-      const res = await runAgent(question);
-      updateMessage(assistantId, (m) => ({
-        ...m,
-        text: res.answer,
-        citations: res.citations,
-        report: res.report,
-      }));
+      // const res = await runAgent(question);
+      // updateMessage(assistantId, (m) => ({
+      //   ...m,
+      //   text: res.answer,
+      //   citations: res.citations,
+      //   report: res.report,
+      // }));
+
+      await streamAgent(question, {
+        onToken: (t) =>
+          updateMessage(assistantId, (m) => ({ ...m, text: m.text + t })),
+        onReport: (report) =>
+          updateMessage(assistantId, (m) => ({ ...m, report })),
+        onCitations: (citations) =>
+          updateMessage(assistantId, (m) => ({ ...m, citations })),
+      });
     } catch (error) {
       updateMessage(assistantId, (m) => ({
         ...m,
