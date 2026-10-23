@@ -1,6 +1,7 @@
 import type { Message } from "../types";
 import { CitationChips } from "./CitationChips";
 import { ReportView } from "./report/ReportView";
+import { Markdown } from "./Markdown";
 
 type Props = {
   message: Message;
@@ -35,8 +36,8 @@ export function Messagebubble({ message, onFollowUp }: Props) {
     <div className="flex gap-3">
       <Avatar />
       <div className="max-w-[80%] min-w-0">
-        <div className="rounded-2xl rounded-tl-sm border border-slate-200 bg-white px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap shadow-sm">
-          {message.text}
+        <div className="rounded-2xl rounded-tl-sm border border-slate-200 bg-white px-4 py-3 text-sm leading-relaxed shadow-sm">
+          <Markdown text={message.text} />
         </div>
         {message.citations && message.citations.length > 0 && (
           <div className="mt-2">
