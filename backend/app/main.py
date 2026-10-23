@@ -1,10 +1,18 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from app.pdf_utils import extract_pages
 from app.vector_store import index_pages, search
 from app.rag import answer_question
 
 app = FastAPI(title="PolicyPilot AI")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class HealthResponse(BaseModel):
