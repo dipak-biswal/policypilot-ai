@@ -10,6 +10,7 @@ router = APIRouter(prefix="/agent", tags=["agent"])
 
 class AgentRequest(BaseModel):
     question: str
+    source: str | None = None
 
 
 @router.post("")

@@ -12,3 +12,4 @@ class AgentState(TypedDict, total=False):
     answer: str
     citations: list[dict]
     report: dict
+    source: str | None

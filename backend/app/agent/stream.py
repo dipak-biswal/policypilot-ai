@@ -6,11 +6,11 @@ from app.rag import sse
 TEXT_NODES = {"qa", "summarizer"}
 
 
-def stream_agent(question: str) -> Iterator[str]:
+def stream_agent(question: str, source: str | None = None) -> Iterator[str]:
     final: dict = {}
 
     for mode, chunk in graph.stream(
-        {"question": question}, stream_mode=["messages", "updates"]
+        {"question": question, "source": source}, stream_mode=["messages", "updates"]
     ):
         if mode == "messages":
             msg, meta = chunk
