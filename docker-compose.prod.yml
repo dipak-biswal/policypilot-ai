@@ -1,0 +1,10 @@
+services:
+  db:
+    ports: !reset []
+  backend:
+    ports: !reset []
+  frontend:
+    build:
+      args:
+        VITE_API_URL: /api
+    ports: !reset ["80:80"]

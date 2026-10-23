@@ -28,6 +28,7 @@ Agentic RAG app: upload insurance/health policy PDFs, chat with them, and get ci
 - [x] Milestone 8d: Agent streaming (POST /agent/stream, SSE with intent/token/report/citations events via LangGraph stream_mode)
 - [x] Milestone 9a/9b: Postgres + pgvector via docker-compose, switchable VECTOR_BACKEND (chroma | pgvector); eval parity (recall 0.95)
 - [x] Milestone 9c: Full stack in Docker (backend uv image, frontend multi-stage Vite + nginx, one-command `docker compose up`)
+- [x] Milestone 10a: GitHub Actions CI (pytest + frontend type-check/build on every push)
 
 ## Design decisions
 
