@@ -19,7 +19,7 @@ export function ChatWindow({
       {messages.map((m) => (
         <Messagebubble key={m.id} message={m} />
       ))}
-      {loading && <p>Thinking...</p>}
+      {loading && messages.at(-1)?.text === "" && <p>Thinking...</p>}
     </div>
   );
 }
