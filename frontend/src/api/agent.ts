@@ -1,4 +1,10 @@
-import type { AgentResponse, Citation, Intent, Report } from "../types";
+import type {
+  AgentResponse,
+  AgentStreamEvent,
+  Citation,
+  Intent,
+  Report,
+} from "../types";
 import { API_URL, request } from "./client";
 import { readSSE } from "./sse";
 
@@ -27,11 +33,24 @@ export async function streamAgent(question: string, h: AgentStreamHandlers) {
   if (!res.ok || !res.body)
     throw new Error(`Agent stream failed: ${res.status}`);
 
-  for await (const { event, data } of readSSE(res)) {
-    if (event === "intent") h.onIntent?.(data.intent);
-    else if (event === "token") h.onToken(data.text);
-    else if (event === "report") h.onReport?.(data);
-    else if (event === "citations") h.onCitations?.(data);
-    else if (event === "done") break;
+  for await (const raw of readSSE(res)) {
+    const e = raw as AgentStreamEvent;
+    switch (e.event) {
+      case "intent":
+        h.onIntent?.(e.data.intent);
+        break;
+      case "token":
+        h.onToken?.(e.data.text);
+        break;
+      case "report":
+        h.onReport?.(e.data);
+        break;
+      case "citations":
+        h.onCitations?.(e.data);
+        break;
+
+      case "done":
+        return;
+    }
   }
 }

@@ -39,3 +39,10 @@ export type AgentResponse = {
   citations: Citation[];
   report: Report | null;
 };
+
+export type AgentStreamEvent =
+  | { event: "intent"; data: { intent: Intent } }
+  | { event: "token"; data: { text: string } }
+  | { event: "report"; data: Report }
+  | { event: "citations"; data: Citation[] }
+  | { event: "done"; data: Record<string, never> };
