@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - uses: action/checkout@v4
-      - uses: astral-sh/setup#v6
+      - uses: astral-sh/setup-uv@v6
       - run: uv python install 3.12
       - run: uv sync --frozen
       - run: uv run pytest -v
@@ -32,7 +32,7 @@ jobs:
         working-directory: frontend
     steps:
       - uses: action/checkout@v4
-      - uses: action/setup-node#v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
