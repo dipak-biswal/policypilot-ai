@@ -22,3 +22,4 @@ Agentic RAG app: upload insurance/health policy PDFs, chat with them, and get ci
 - [x] Milestone 5b: Token streaming over SSE (FastAPI StreamingResponse + fetch ReadableStream in React)
 - [x] Milestone 6: LangGraph agent (router → retrieval → qa / summarizer / report generator) with structured-output reports and follow-up suggestions
 - [x] Milestone 7: Dynamic report rendering (layout-driven components) + clickable follow-up suggestions
+- [x] Milestone 8a: LangSmith tracing of every graph run (router decision, retrieved chunks, latency, tokens)
