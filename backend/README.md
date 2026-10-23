@@ -24,3 +24,16 @@ Agentic RAG app: upload insurance/health policy PDFs, chat with them, and get ci
 - [x] Milestone 7: Dynamic report rendering (layout-driven components) + clickable follow-up suggestions
 - [x] Milestone 8a: LangSmith tracing of every graph run (router decision, retrieved chunks, latency, tokens)
 - [x] Milestone 8b: pytest suite (citation logic, PDF extraction, API endpoints with mocked agent)
+- [x] Milestone 8c: RAGAS evaluation (16-question golden set, retrieval hit rate, off-topic refusal, router accuracy)
+
+## Design decisions
+
+### Evaluation-driven tuning
+
+| Change                                          | Hit rate | Faithfulness | Relevancy | Recall |
+| ----------------------------------------------- | -------- | ------------ | --------- | ------ |
+| Baseline (k=4, min_score 0.3, 1000/200 chunks)  | 0.69     | 0.62         | 0.57      | 0.62   |
+| k=6, min_score 0.2                              | 1.00     | 0.91         | 0.71      | 0.85   |
+| Strip header/footer boilerplate, 800/150 chunks | 1.00     | 0.96         | 0.81      | 0.95   |
+
+Off-topic refusal 2/2 and router accuracy 5/5 throughout.

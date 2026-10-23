@@ -3,6 +3,9 @@ from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from langchain_openai import OpenAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+import warnings
+
+warnings.filterwarnings("ignore", message="Relevance scores must be between 0 and 1")
 
 load_dotenv()
 
@@ -14,7 +17,7 @@ vector_store = Chroma(
     persist_directory="./chroma_db",
 )
 
-splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=150)
 
 
 def index_pages(filename: str, pages: list[dict]) -> int:
@@ -33,6 +36,6 @@ def index_pages(filename: str, pages: list[dict]) -> int:
     return len(chunks)
 
 
-def search(query: str, k: int = 4, min_score: float = 0.3) -> list[Document]:
+def search(query: str, k: int = 6, min_score: float = 0.2) -> list[Document]:
     results = vector_store.similarity_search_with_relevance_scores(query, k=k)
     return [doc for doc, score in results if score >= min_score]
