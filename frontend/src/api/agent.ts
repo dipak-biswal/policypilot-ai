@@ -23,11 +23,15 @@ export function runAgent(question: string) {
   });
 }
 
-export async function streamAgent(question: string, h: AgentStreamHandlers) {
+export async function streamAgent(
+  question: string,
+  source: string | null,
+  h: AgentStreamHandlers,
+) {
   const res = await fetch(`${API_URL}/agent/stream`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question }),
+    body: JSON.stringify({ question, source }),
   });
 
   if (!res.ok || !res.body)

@@ -5,7 +5,7 @@ export function useUpload() {
   const [status, setStatus] = useState("");
   const [uploading, setUploading] = useState(false);
 
-  async function upload(file: File) {
+  async function upload(file: File): Promise<string | null> {
     setUploading(true);
     setStatus("Uploading and indexing...");
 
@@ -14,8 +14,10 @@ export function useUpload() {
       setStatus(
         `Indexed ${res.filename}: ${res.page_count} pages, ${res.chunks_indexed} chunks`,
       );
+      return res.filename;
     } catch (error) {
       setStatus(`Upload failed: ${(error as Error).message}`);
+      return null;
     } finally {
       setUploading(false);
     }

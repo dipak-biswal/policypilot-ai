@@ -7,7 +7,7 @@ import {
 } from "../api/agent";
 import { makeId } from "../utils/id";
 
-export function useChat() {
+export function useChat(source: string | null) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -25,24 +25,8 @@ export function useChat() {
     ]);
     setLoading(true);
 
-    // try {
-    //   await streamQuestion(question, {
-    //     onToken: (token) =>
-    //       updateMessage(assistantId, (m) => ({ ...m, text: m.text + token })),
-    //     onCitations: (citations: Citation[]) =>
-    //       updateMessage(assistantId, (m) => ({ ...m, citations })),
-    //   });
-    // }
     try {
-      // const res = await runAgent(question);
-      // updateMessage(assistantId, (m) => ({
-      //   ...m,
-      //   text: res.answer,
-      //   citations: res.citations,
-      //   report: res.report,
-      // }));
-
-      await streamAgent(question, {
+      await streamAgent(question, source, {
         onToken: (t) =>
           updateMessage(assistantId, (m) => ({ ...m, text: m.text + t })),
         onReport: (report) =>
