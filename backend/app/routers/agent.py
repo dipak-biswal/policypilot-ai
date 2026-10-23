@@ -1,9 +1,10 @@
-from fastapi import APIRouter
-from pydantic import BaseModel
+from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
-from app.agent.stream import stream_agent
+from pydantic import BaseModel
 
 from app.agent.graph import graph
+from app.agent.stream import stream_agent
+from app.rate_limit import limiter
 
 router = APIRouter(prefix="/agent", tags=["agent"])
 
@@ -14,17 +15,23 @@ class AgentRequest(BaseModel):
 
 
 @router.post("")
-def run_agent(req: AgentRequest) -> dict:
-    result = graph.invoke({"question": req.question})
-
+@limiter.limit("10/minute")
+def run_agent(request: Request, body: AgentRequest) -> dict:
+    # `request` is only for slowapi (to read the client IP); `body` is the JSON payload
+    result = graph.invoke({"question": body.question, "source": body.source})
     return {
-        "intent": result["intent"],
-        "answer": result.get("answer", ""),
+        "intent": result.get("intent"),
+        "answer": result.get("answer"),
         "citations": result.get("citations", []),
         "report": result.get("report"),
+        "follow_up_questions": result.get("follow_up_questions", []),
     }
 
 
 @router.post("/stream")
-def agent_stream(req: AgentRequest):
-    return StreamingResponse(stream_agent(req.question), media_type="text/event-stream")
+@limiter.limit("10/minute")
+def agent_stream(request: Request, body: AgentRequest):
+    return StreamingResponse(
+        stream_agent(body.question, body.source),
+        media_type="text/event-stream",
+    )

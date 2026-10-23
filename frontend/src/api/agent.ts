@@ -34,6 +34,12 @@ export async function streamAgent(
     body: JSON.stringify({ question, source }),
   });
 
+  if (res.status === 429) {
+    throw new Error(
+      "You're sending questions too fast. Please wait a minute and try again.",
+    );
+  }
+
   if (!res.ok || !res.body)
     throw new Error(`Agent stream failed: ${res.status}`);
 

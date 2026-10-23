@@ -31,6 +31,7 @@ Agentic RAG app: upload insurance/health policy PDFs, chat with them, and get ci
 - [x] Milestone 10a: GitHub Actions CI (pytest + frontend type-check/build on every push)
 - CI/CD: GitHub Actions runs pytest + frontend build, then auto-deploys to EC2 over SSH on every push to main
 - [x] Add-on: Per-document filtering (metadata filter on source, React document picker)
+- [x] Add-on: Rate limiting (slowapi, 10/min chat, 5/hour uploads, per real client IP behind nginx) with friendly 429 messages in the UI
 
 ## Design decisions
 

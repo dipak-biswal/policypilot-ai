@@ -7,8 +7,14 @@ from app.vector_store import index_pages, search
 from app.rag import answer_question, stream_answer
 
 from app.routers.agent import router as agent_router
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from app.rate_limit import limiter
 
 app = FastAPI(title="PolicyPilot AI")
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.include_router(agent_router)
 

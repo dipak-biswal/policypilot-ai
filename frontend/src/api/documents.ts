@@ -1,5 +1,5 @@
-import { request } from "./client";
 import type { UploadResponse } from "../types";
+import { request } from "./client";
 
 export function uploadPdf(file: File) {
   const form = new FormData();

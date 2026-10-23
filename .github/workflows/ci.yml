@@ -17,6 +17,7 @@ jobs:
       OPENAI_API_KEY: sk-test-dummy
       VECTOR_BACKEND: chroma
       LANGSMITH_TRACING: "false"
+      RATE_LIMIT_ENABLED: "false"
 
     steps:
       - uses: actions/checkout@v4

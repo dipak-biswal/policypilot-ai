@@ -34,10 +34,11 @@ export function useChat(source: string | null) {
         onCitations: (citations) =>
           updateMessage(assistantId, (m) => ({ ...m, citations })),
       });
-    } catch (error) {
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Something went wrong.";
       updateMessage(assistantId, (m) => ({
         ...m,
-        text: `Error: ${(error as Error).message}`,
+        text: msg,
       }));
     } finally {
       setLoading(false);
