@@ -18,8 +18,15 @@ prompt = ChatPromptTemplate.from_messages(
         (
             "system",
             "You are PolicyPilot, an assistant that answers questions about insurance policies. "
-            "Answer ONLY from the context below. If the answer is not in the context, say you don't know. "
-            "Cite pages inline like [Page 12].\n\nContext:\n{context}",
+            "Rules:\n"
+            "1. Answer ONLY from the context below. If the answer is not in the context, say you don't know.\n"
+            "2. Before saying anything is covered, check whether the context lists it under "
+            "exclusions, waiting periods or 'Code- Excl' items. If it does, say it is NOT covered.\n"
+            "3. Text that mentions a treatment is not proof that it is covered. Only say 'covered' "
+            "when the context explicitly says so.\n"
+            "4. If coverage is unclear, say so and suggest checking the policy's exclusions section.\n"
+            "5. Cite pages inline like [Page 12].\n\n"
+            "Context:\n{context}",
         ),
         ("human", "{question}"),
     ]
@@ -47,7 +54,7 @@ def extract_citations(answer: str, docs: list[Document]) -> list[dict]:
 
 
 def answer_question(question: str) -> dict:
-    docs = search(question, k=4)
+    docs = search(question)
 
     if not docs:
         return {

@@ -1,4 +1,5 @@
 import os
+import hashlib
 from dotenv import load_dotenv
 from langchain_chroma import Chroma
 from langchain_postgres import PGVector
@@ -31,7 +32,12 @@ def build_vector_store():
 
 vector_store = build_vector_store()
 
-splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=150)
+splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=250)
+
+
+def chunk_id(doc: Document) -> str:
+    key = f"{doc.metadata['source']}|{doc.metadata['page']}|{doc.page_content}"
+    return hashlib.sha256(key.encode()).hexdigest()
 
 
 def index_pages(filename: str, pages: list[dict]) -> int:
@@ -44,8 +50,11 @@ def index_pages(filename: str, pages: list[dict]) -> int:
     ]
 
     chunks = splitter.split_documents(docs)
+    ids = list(dict.fromkeys(chunk_id(c) for c in chunks))
 
-    vector_store.add_documents(chunks)
+    unique = {chunk_id(c): c for c in chunks}
+
+    vector_store.add_documents([unique[i] for i in ids], ids=ids)
 
     return len(chunks)
 
