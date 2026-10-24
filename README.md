@@ -7,6 +7,7 @@ Agentic RAG app for insurance/health policy PDFs: upload a policy, chat with it,
 ![Demo](docs/demo.gif)
 
 ## Features
+
 - Upload PDFs, pick a document, and chat with streaming answers and `[Page N]` citations
 - LangGraph agent routes each question to Q&A, a summary or a structured report
 - Reports render as bullets, tables or key-value layouts, with follow-up question chips
@@ -14,6 +15,7 @@ Agentic RAG app for insurance/health policy PDFs: upload a policy, chat with it,
 - Rate limited per client IP; CI/CD auto-deploys to AWS EC2
 
 ## Architecture
+
 ```mermaid
 flowchart LR
   U[React + TS UI] -->|SSE /api/agent/stream| N[nginx]
@@ -29,31 +31,50 @@ flowchart LR
 ```
 
 ## Tech stack
-| Layer | Tech |
-|---|---|
-| Frontend | React, TypeScript, Vite, SSE streaming |
-| Backend | Python 3.12, FastAPI, uv, slowapi |
-| AI | LangChain, LangGraph, OpenAI |
-| Vector DB | ChromaDB (local) → PostgreSQL + pgvector |
-| Quality | pytest, RAGAS, LangSmith |
-| DevOps | Docker, docker compose, nginx, GitHub Actions, AWS EC2 |
+
+| Layer     | Tech                                                   |
+| --------- | ------------------------------------------------------ |
+| Frontend  | React, TypeScript, Vite, SSE streaming                 |
+| Backend   | Python 3.12, FastAPI, uv, slowapi                      |
+| AI        | LangChain, LangGraph, OpenAI                           |
+| Vector DB | ChromaDB (local) → PostgreSQL + pgvector               |
+| Quality   | pytest, RAGAS, LangSmith                               |
+| DevOps    | Docker, docker compose, nginx, GitHub Actions, AWS EC2 |
 
 ## Evaluation (RAGAS, 16 Q&A from a public policy PDF)
-| Stage | Page hit | Faithfulness | Answer relevancy | Context recall |
-|---|---|---|---|---|
-| Baseline | 0.69 | 0.62 | 0.57 | 0.62 |
-| k=6, min score 0.2 | 1.00 | 0.91 | 0.71 | 0.85 |
-| Text cleaning + 800/150 chunks | 1.00 | 0.96 | 0.81 | 0.95 |
-| pgvector | 1.00 | 0.90 | 0.81 | 0.95 |
+
+| Stage                          | Page hit | Faithfulness | Answer relevancy | Context recall |
+| ------------------------------ | -------- | ------------ | ---------------- | -------------- |
+| Baseline                       | 0.69     | 0.62         | 0.57             | 0.62           |
+| k=6, min score 0.2             | 1.00     | 0.91         | 0.71             | 0.85           |
+| Text cleaning + 800/150 chunks | 1.00     | 0.96         | 0.81             | 0.95           |
+| pgvector                       | 1.00     | 0.90         | 0.81             | 0.95           |
 
 Off-topic refusal 2/2, router accuracy 5/5.
 
+## Retrieval quality fixes
+
+Found and fixed a hallucination: the app said maternity was "covered" when the policy excludes it (Page 12).
+
+- **Root cause:** re-uploads duplicated chunks, so 4 copies of one irrelevant chunk crowded the top-6 results.
+- **Stable chunk IDs:** a SHA-256 of source + page + text makes re-indexing idempotent, so re-uploading the same PDF no longer adds duplicates. The same IDs also power the delete feature.
+- **Hybrid search:** BM25 keyword search plus vector search, merged with Reciprocal Rank Fusion, with insurance-specific stopwords, so exact terms like "cataract" aren't missed.
+- **Page-aware context expansion:** pulls in neighbouring chunks from the same and previous page, so rules that start on one page and list items on the next stay together.
+- **Exclusion and waiting-period-aware prompt.**
+  | Metric | Before | After |
+  |---|---|---|
+  | Context recall | 0.95 | 1.00 |
+  | Answer relevancy | 0.81 | 0.82 |
+  | Faithfulness | 0.96 | 0.93 |
+
 ## Screenshots
-| Chat with citations | Report |
-|---|---|
+
+| Chat with citations            | Report                           |
+| ------------------------------ | -------------------------------- |
 | ![](docs/screenshots/chat.png) | ![](docs/screenshots/report.png) |
 
 ## Run locally
+
 ```bash
 cp backend/.env.example backend/.env   # add your OPENAI_API_KEY
 docker compose up --build
@@ -61,6 +82,7 @@ docker compose up --build
 ```
 
 ## Key engineering decisions
+
 - **Eval-driven tuning:** used RAGAS scores to pick chunk size, k and score threshold
 - **Streaming:** LangGraph `stream_mode=["messages","updates"]` turned into typed SSE events (a TS discriminated union)
 - **Swappable vector store:** a `VECTOR_BACKEND` env switch between Chroma and pgvector
