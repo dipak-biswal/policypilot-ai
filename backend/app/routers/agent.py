@@ -1,17 +1,12 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
 
+from app.schemas.agent import AgentRequest
 from app.agent.graph import graph
 from app.agent.stream import stream_agent
 from app.rate_limit import limiter
 
 router = APIRouter(prefix="/agent", tags=["agent"])
-
-
-class AgentRequest(BaseModel):
-    question: str
-    source: str | None = None
 
 
 @router.post("")
