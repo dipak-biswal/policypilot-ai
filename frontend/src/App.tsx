@@ -13,7 +13,7 @@ import { deleteDocument } from "./api/documents";
 export default function App() {
   const { documents, selected, setSelected, addDocument, removeDocument } =
     useDocuments();
-  const { upload, status, uploading } = useUpload();
+  const { upload, status, uploading, clearStatus } = useUpload();
   const { messages, loading, send, clear } = useChat(selected);
   const [deleting, setDeleting] = useState<string | null>(null);
 
@@ -42,6 +42,7 @@ export default function App() {
     }
     if (name === selected) clear();
     removeDocument(name);
+    clearStatus();
     setDeleting(null);
   };
 
@@ -70,7 +71,11 @@ export default function App() {
         canClear={messages.length > 0 && !loading}
       />
 
-      <ChatWindow messages={messages} loading={loading} onFollowUp={send} />
+      <ChatWindow
+        messages={messages}
+        loading={loading}
+        onFollowUp={selected ? send : () => {}}
+      />
       <ChatInput onSend={send} disabled={loading || !selected} />
     </Layout>
   );

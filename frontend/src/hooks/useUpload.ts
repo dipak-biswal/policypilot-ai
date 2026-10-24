@@ -14,6 +14,7 @@ export function useUpload() {
       setStatus(
         `Indexed ${res.filename}: ${res.page_count} pages, ${res.chunks_indexed} chunks`,
       );
+      setTimeout(() => setStatus(""), 5000);
       return res.filename;
     } catch (error) {
       setStatus(`Upload failed: ${(error as Error).message}`);
@@ -23,5 +24,7 @@ export function useUpload() {
     }
   }
 
-  return { status, uploading, upload };
+  const clearStatus = () => setStatus("");
+
+  return { status, uploading, upload, clearStatus };
 }
