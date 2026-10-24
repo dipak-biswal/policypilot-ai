@@ -7,15 +7,42 @@ import { useDocuments } from "./hooks/useDocuments";
 import { useChat } from "./hooks/useChat";
 import { Layout } from "./components/Layout";
 import { ChatHeader } from "./components/ChatHeader";
+import { useState } from "react";
+import { deleteDocument } from "./api/documents";
 
 export default function App() {
-  const { documents, selected, setSelected, addDocument } = useDocuments();
+  const { documents, selected, setSelected, addDocument, removeDocument } =
+    useDocuments();
   const { upload, status, uploading } = useUpload();
   const { messages, loading, send, clear } = useChat(selected);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   const handleUpload = async (file: File) => {
     const filename = await upload(file);
     if (filename) addDocument(filename);
+  };
+
+  const handleDelete = async (name: string) => {
+    if (
+      !window.confirm(
+        `Delete "${name}"? This removes it from search for everyone.`,
+      )
+    )
+      return;
+    setDeleting(name);
+    try {
+      await deleteDocument(name);
+    } catch (err) {
+      // 404 means it's already gone from the server, so still remove it from the list
+      if (!String(err).includes("404")) {
+        alert(`Delete failed: ${err}`);
+        setDeleting(null);
+        return;
+      }
+    }
+    if (name === selected) clear();
+    removeDocument(name);
+    setDeleting(null);
   };
 
   return (
@@ -31,6 +58,8 @@ export default function App() {
             documents={documents}
             selected={selected}
             onSelect={setSelected}
+            onDelete={handleDelete}
+            deleting={deleting}
           />
         </>
       }

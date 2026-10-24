@@ -3,10 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from app.pdf_utils import extract_pages
-from app.vector_store import index_pages, search
+from app.vector_store import index_pages, search, delete_document
 from app.rag import answer_question, stream_answer
-
 from app.routers.agent import router as agent_router
+
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from app.rate_limit import limiter
@@ -58,6 +58,11 @@ class ChatResponse(BaseModel):
     citations: list[Citations]
 
 
+class DeleteResponse(BaseModel):
+    filename: str
+    chunks_deleted: int
+
+
 @app.get("/health", response_model=HealthResponse)
 def health() -> HealthResponse:
     return HealthResponse(status="ok", service="policypilot-ai")
@@ -98,3 +103,12 @@ def chat_stream(req: ChatRequest) -> StreamingResponse:
     return StreamingResponse(
         stream_answer(req.question), media_type="text/event-stream"
     )
+
+
+@app.delete("/documents/{filename}", response_model=DeleteResponse)
+def remove_document(filename: str) -> DeleteResponse:
+    deleted = delete_document(filename)
+
+    if deleted == 0:
+        raise HTTPException(status_code=404, detail="Document not found")
+    return DeleteResponse(filename=filename, chunks_deleted=deleted)

@@ -7,3 +7,10 @@ export function uploadPdf(file: File) {
 
   return request<UploadResponse>("/documents", { method: "POST", body: form });
 }
+
+export function deleteDocument(filename: string) {
+  return request<{ filename: string; chunks_deleted: number }>(
+    `/documents/${encodeURIComponent(filename)}`,
+    { method: "DELETE" },
+  );
+}

@@ -123,3 +123,14 @@ def rrf_top(
     rest = [d for d in merged if bm25.doc_key(d) not in keys]
 
     return (must_keep + rest)[:k]
+
+
+def delete_document(source: str) -> int:
+    """Delete every chunk of one document. Returns how many chunks were removed."""
+    chunks = _load_chunks(source)
+    if not chunks:
+        return 0
+    # chunk ids are deterministic hashes, so we can rebuild them from the chunks themselves
+    vector_store.delete(ids=[chunk_id(c) for c in chunks])
+    bm25.invalidate()
+    return len(chunks)

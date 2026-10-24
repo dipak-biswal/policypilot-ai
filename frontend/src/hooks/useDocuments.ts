@@ -18,5 +18,13 @@ export function useDocuments() {
     setSelected(name);
   };
 
-  return { documents, selected, setSelected, addDocument };
+  const removeDocument = (name: string) => {
+    setDocuments((prev) => {
+      const next = prev.filter((d) => d !== name);
+      setSelected((sel) => (sel === name ? (next[0] ?? null) : sel));
+      return next;
+    });
+  };
+
+  return { documents, selected, setSelected, addDocument, removeDocument };
 }
