@@ -1,34 +1,30 @@
+import { useState } from "react";
 import { UploadPanel } from "./components/UploadPanel";
 import { DocumentPicker } from "./components/DocumentPicker";
 import { ChatWindow } from "./components/ChatWindow";
 import { ChatInput } from "./components/ChatInput";
+import { Layout } from "./components/Layout";
+import { ChatHeader } from "./components/ChatHeader";
+import { ConfirmDeleteDialog } from "./components/ConfirmDeleteDialog";
 import { useUpload } from "./hooks/useUpload";
 import { useDocuments } from "./hooks/useDocuments";
 import { useChat } from "./hooks/useChat";
-import { Layout } from "./components/Layout";
-import { ChatHeader } from "./components/ChatHeader";
-import { useState } from "react";
 import { deleteDocument } from "./api/documents";
 
 export default function App() {
-  const { documents, selected, setSelected, addDocument, removeDocument } =
-    useDocuments();
+  const { documents, selected, setSelected, addDocument, removeDocument } = useDocuments();
   const { upload, status, uploading, clearStatus } = useUpload();
   const { messages, loading, send, clear } = useChat(selected);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<string | null>(null);
 
   const handleUpload = async (file: File) => {
     const filename = await upload(file);
     if (filename) addDocument(filename);
   };
 
-  const handleDelete = async (name: string) => {
-    if (
-      !window.confirm(
-        `Delete "${name}"? This removes it from search for everyone.`,
-      )
-    )
-      return;
+  const confirmDelete = async (name: string) => {
+    setPendingDelete(null);
     setDeleting(name);
     try {
       await deleteDocument(name);
@@ -50,16 +46,12 @@ export default function App() {
     <Layout
       sidebar={
         <>
-          <UploadPanel
-            onUpload={handleUpload}
-            status={status}
-            uploading={uploading}
-          />
+          <UploadPanel onUpload={handleUpload} status={status} uploading={uploading} />
           <DocumentPicker
             documents={documents}
             selected={selected}
             onSelect={setSelected}
-            onDelete={handleDelete}
+            onDelete={setPendingDelete}
             deleting={deleting}
           />
         </>
@@ -70,13 +62,18 @@ export default function App() {
         onNewChat={clear}
         canClear={messages.length > 0 && !loading}
       />
-
       <ChatWindow
         messages={messages}
         loading={loading}
         onFollowUp={selected ? send : () => {}}
       />
       <ChatInput onSend={send} disabled={loading || !selected} />
+
+      <ConfirmDeleteDialog
+        name={pendingDelete}
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={confirmDelete}
+      />
     </Layout>
   );
 }
