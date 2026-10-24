@@ -3,7 +3,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from app.agent.llm import llm
 from app.agent.report_schema import Report
 from app.agent.state import AgentState
-from app.rag import build_context
+from app.generation.citations import build_context
 
 report_prompt = ChatPromptTemplate.from_messages(
     [

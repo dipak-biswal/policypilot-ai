@@ -1,5 +1,6 @@
 from app.agent.state import AgentState
-from app.rag import NOT_FOUND, build_context, chain, extract_citations
+from app.generation.citations import NOT_FOUND, build_context, extract_citations
+from app.generation.qa import chain
 
 
 def qa_node(state: AgentState) -> AgentState:

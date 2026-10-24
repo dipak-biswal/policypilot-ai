@@ -1,6 +1,6 @@
 from langchain_core.documents import Document
 
-from app.rag import extract_citations
+from app.generation.citations import extract_citations
 
 
 def make_doc(page: int, text: str = "some text") -> Document:

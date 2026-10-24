@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from app.pdf_utils import extract_pages
+from app.ingestion.pdf import extract_pages
 
 SAMPLE = Path(__file__).parent.parent.parent / "sample-data" / "optima-plus.pdf"
 

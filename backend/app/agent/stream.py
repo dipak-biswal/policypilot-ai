@@ -1,7 +1,7 @@
 from collections.abc import Iterator
 
 from app.agent.graph import graph
-from app.rag import sse
+from app.utils.sse import sse
 
 TEXT_NODES = {"qa", "summarizer"}
 

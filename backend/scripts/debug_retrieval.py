@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 
 load_dotenv()
-from app.vector_store import vector_store  # noqa: E402
+from app.retrieval.store import vector_store
 
 QUESTION = "Can I claim for cataract surgery in my first policy year?"
 

@@ -2,7 +2,7 @@ from langchain_core.prompts import ChatPromptTemplate
 
 from app.agent.llm import llm
 from app.agent.state import AgentState
-from app.rag import build_context, extract_citations
+from app.generation.citations import build_context, extract_citations
 
 summary_prompt = ChatPromptTemplate.from_messages(
     [

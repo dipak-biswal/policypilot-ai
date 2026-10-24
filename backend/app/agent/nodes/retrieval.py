@@ -1,5 +1,5 @@
 from app.agent.state import AgentState
-from app.vector_store import search
+from app.retrieval.search import search
 
 SUMMARY_QUERY = "policy coverage benefits sum insured exclusions waiting periods claims"
 

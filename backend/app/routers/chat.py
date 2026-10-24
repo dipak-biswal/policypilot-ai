@@ -1,9 +1,9 @@
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 
-from app.rag import answer_question, stream_answer
+from app.generation.qa import answer_question, stream_answer
 from app.schemas.chat import ChatRequest, ChatResponse
-from app.vector_store import search
+from app.retrieval.search import search
 
 router = APIRouter(tags=["chat (legacy)"])
 

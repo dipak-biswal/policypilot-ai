@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException, File, Request, UploadFile
 
-from app.pdf_utils import extract_pages
+from app.ingestion.pdf import extract_pages
 from app.rate_limit import limiter
 from app.schemas.documents import DeleteResponse, DocumentResponse, PageText
-from app.vector_store import delete_document, index_pages
+from app.retrieval.indexing import delete_document, index_pages
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 

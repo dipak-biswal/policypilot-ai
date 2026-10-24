@@ -1,6 +1,5 @@
 import { useState } from "react";
 import type { Message } from "../types";
-// import { streamQuestion } from "../api/chat";
 import {
   // runAgent,
   streamAgent,
