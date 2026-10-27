@@ -88,4 +88,20 @@ docker compose up --build
 - **Swappable vector store:** a `VECTOR_BACKEND` env switch between Chroma and pgvector
 - **Prod setup:** nginx proxies `/api` with buffering off for SSE; only port 80 is public
 
-> Uses only public sample policy documents.
+## Retrieval quality fixes
+
+**Problem:** asked "Is maternity covered?", the app answered "covered" (citing Page 4), even though the policy excludes it on Page 12. It also missed the cataract waiting period.
+**Root causes and fixes**
+
+- **Duplicate chunks:** re-uploads created copies that crowded out relevant results. Chunks now get stable `sha256(source|page|content)` ids, so indexing is idempotent and documents can be deleted.
+- **Pure vector search missed exact terms:** I added hybrid search, BM25 keyword search plus vector search merged with Reciprocal Rank Fusion (k=60), with insurance-domain stopwords.
+- **Rules split across pages:** small-to-big context expansion adds sibling chunks from the same page and the previous page for the top hits (the cataract rule spans pages 9 and 10). Chunk overlap went from the default to 250.
+- **Prompt:** exclusion-aware and waiting-period-aware rules (a waiting period means "not covered during the period, then covered").
+  **Measured with RAGAS (16-question eval set)**
+  | Metric | Score |
+  |---|---|
+  | Context recall | 1.00 |
+  | Answer relevancy | 0.82 |
+  | Faithfulness | 0.93 |
+  | Off-topic refusal | 2/2 |
+  | Router accuracy | 5/5 |
