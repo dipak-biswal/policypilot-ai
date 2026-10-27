@@ -30,6 +30,12 @@ export function useChat(source: string | null) {
           updateMessage(assistantId, (m) => ({ ...m, report })),
         onCitations: (citations) =>
           updateMessage(assistantId, (m) => ({ ...m, citations })),
+        onMetrics: (m) =>
+          setMessages((prev) =>
+            prev.map((msg, i) =>
+              i === prev.length - 1 ? { ...msg, metrics: m } : msg,
+            ),
+          ),
       });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong.";

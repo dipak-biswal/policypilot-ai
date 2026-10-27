@@ -4,6 +4,7 @@ import { ReportView } from "./report/ReportView";
 import { Markdown } from "./Markdown";
 import { TypingDots } from "./TypingDots";
 import { CopyButton } from "./CopyButton";
+import { MetricsBadge } from "./MetricsBadge";
 
 type Props = {
   message: Message;
@@ -60,6 +61,7 @@ export function Messagebubble({
             {message.citations && message.citations.length > 0 && (
               <CitationChips citations={message.citations} />
             )}
+            {message.metrics && <MetricsBadge metrics={message.metrics} />}
             <CopyButton text={message.text} />
           </div>
         )}

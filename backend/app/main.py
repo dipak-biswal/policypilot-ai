@@ -7,11 +7,14 @@ from app.rate_limit import limiter
 from app.routers import agent, chat, documents, health
 from app.core.config import settings
 
+from app.core.timing import timing_middleware
+
 app = FastAPI(title="PolicyPilot AI")
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+app.middleware("http")(timing_middleware)
 
 app.add_middleware(
     CORSMiddleware,

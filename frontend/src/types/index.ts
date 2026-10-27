@@ -11,6 +11,7 @@ export type Message = {
   text: string;
   citations?: Citation[];
   report?: Report | null;
+  metrics?: Metrics;
 };
 
 export type Intent = "qa" | "summary" | "report";
@@ -45,4 +46,12 @@ export type AgentStreamEvent =
   | { event: "token"; data: { text: string } }
   | { event: "report"; data: Report }
   | { event: "citations"; data: Citation[] }
+  | { event: "metrics"; data: Metrics }
   | { event: "done"; data: Record<string, never> };
+
+export interface Metrics {
+  latency_ms: number;
+  input_tokens: number;
+  output_tokens: number;
+  cost_usd: number;
+}

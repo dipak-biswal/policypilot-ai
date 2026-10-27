@@ -3,6 +3,7 @@ import type {
   AgentStreamEvent,
   Citation,
   Intent,
+  Metrics,
   Report,
 } from "../types";
 import { API_URL, request } from "./client";
@@ -13,6 +14,7 @@ export interface AgentStreamHandlers {
   onToken: (text: string) => void;
   onReport?: (report: Report) => void;
   onCitations?: (citations: Citation[]) => void;
+  onMetrics?: (m: Metrics) => void;
 }
 
 export function runAgent(question: string) {
@@ -58,6 +60,9 @@ export async function streamAgent(
         break;
       case "citations":
         h.onCitations?.(e.data);
+        break;
+      case "metrics":
+        h.onMetrics?.(e.data as Metrics);
         break;
 
       case "done":
