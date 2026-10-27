@@ -105,3 +105,5 @@ docker compose up --build
   | Faithfulness | 0.93 |
   | Off-topic refusal | 2/2 |
   | Router accuracy | 5/5 |
+
+- **Conversation memory**: a LangGraph rewriter node turns follow-ups ("what about cataract?") into standalone questions before retrieval. Chat history is kept per thread with a Postgres checkpointer (`PostgresSaver`), so it survives restarts and redeploys.
