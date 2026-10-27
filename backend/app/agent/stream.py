@@ -6,11 +6,16 @@ from app.utils.sse import sse
 TEXT_NODES = {"qa", "summarizer"}
 
 
-def stream_agent(question: str, source: str | None = None) -> Iterator[str]:
+def stream_agent(
+    question: str, source: str | None = None, thread_id: str = "default"
+) -> Iterator[str]:
     final: dict = {}
+    config = {"configurable": {"thread_id": thread_id}}
 
     for mode, chunk in graph.stream(
-        {"question": question, "source": source}, stream_mode=["messages", "updates"]
+        {"question": question, "source": source},
+        config=config,
+        stream_mode=["messages", "updates"],
     ):
         if mode == "messages":
             msg, meta = chunk

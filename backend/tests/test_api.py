@@ -25,7 +25,9 @@ def test_agent_endpoint_returns_graph_result(monkeypatch):
         "citations": [],
         "report": None,
     }
-    monkeypatch.setattr("app.routers.agent.graph.invoke", lambda state: fake_result)
+    monkeypatch.setattr(
+        "app.routers.agent.graph.invoke", lambda state, config=None: fake_result
+    )
 
     res = client.post("/agent", json={"question": "waiting period?"})
     assert res.status_code == 200
