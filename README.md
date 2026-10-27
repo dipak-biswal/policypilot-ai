@@ -69,9 +69,9 @@ Found and fixed a hallucination: the app said maternity was "covered" when the p
 
 ## Screenshots
 
-| Chat with citations            | Report                           |
-| ------------------------------ | -------------------------------- |
-| ![](docs/screenshots/chat.png) | ![](docs/screenshots/report.png) |
+| Home                           | Chat with citations            | Report                           |
+| ------------------------------ | ------------------------------ | -------------------------------- |
+| ![](docs/screenshots/home.png) | ![](docs/screenshots/chat.png) | ![](docs/screenshots/report.png) |
 
 ## Run locally
 
