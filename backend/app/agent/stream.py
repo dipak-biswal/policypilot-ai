@@ -2,6 +2,7 @@ from collections.abc import Iterator
 
 from app.agent.graph import graph
 from app.utils.sse import sse
+from langchain_core.messages import AIMessageChunk
 
 TEXT_NODES = {"qa", "summarizer"}
 
@@ -19,7 +20,11 @@ def stream_agent(
     ):
         if mode == "messages":
             msg, meta = chunk
-            if meta.get("langgraph_node") in TEXT_NODES and msg.content:
+            if (
+                meta.get("langgraph_node") in TEXT_NODES
+                and isinstance(msg, AIMessageChunk)
+                and msg.content
+            ):
                 yield sse("token", {"text": msg.content})
         else:
             for node, update in chunk.items():

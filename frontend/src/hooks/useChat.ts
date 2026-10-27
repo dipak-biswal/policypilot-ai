@@ -1,14 +1,12 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { Message } from "../types";
-import {
-  // runAgent,
-  streamAgent,
-} from "../api/agent";
+import { streamAgent } from "../api/agent";
 import { makeId } from "../utils/id";
 
 export function useChat(source: string | null) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
+  const threadId = useRef(makeId());
 
   function updateMessage(id: string, update: (m: Message) => Message) {
     setMessages((all) => all.map((m) => (m.id === id ? update(m) : m)));
@@ -25,7 +23,7 @@ export function useChat(source: string | null) {
     setLoading(true);
 
     try {
-      await streamAgent(question, source, {
+      await streamAgent(question, source, threadId.current, {
         onToken: (t) =>
           updateMessage(assistantId, (m) => ({ ...m, text: m.text + t })),
         onReport: (report) =>
@@ -46,6 +44,7 @@ export function useChat(source: string | null) {
 
   function clear() {
     setMessages([]);
+    threadId.current = makeId();
   }
 
   return { messages, loading, send, clear };
