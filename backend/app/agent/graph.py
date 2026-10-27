@@ -9,7 +9,7 @@ from app.agent.nodes.summarizer import summarizer_node
 from app.agent.state import AgentState
 from app.agent.nodes.report_generator import report_node
 from app.agent.nodes.rewriter import rewriter_node
-from langgraph.checkpoint.memory import MemorySaver
+from app.agent.checkpointer import build_checkpointer
 
 
 def pick_next(state: AgentState) -> str:
@@ -39,4 +39,4 @@ builder.add_edge("qa", END)
 builder.add_edge("summarizer", END)
 builder.add_edge("report", END)
 
-graph = builder.compile(checkpointer=MemorySaver())
+graph = builder.compile(checkpointer=build_checkpointer())
