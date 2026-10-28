@@ -1,6 +1,5 @@
 import type { Report } from "../../types";
-import { BlockRenderer } from "./blocks/BlockRenderer";
-import { WIDE } from "./blocks/registry";
+import { BlockTabs } from "./blocks/BlockTabs";
 import { FollowUpChips } from "./FollowUpChips";
 
 type Props = {
@@ -21,15 +20,8 @@ export function ReportView({ report, onFollowUp }: Props) {
         </p>
       </div>
 
-      <div className="grid gap-3 p-4 md:grid-cols-2">
-        {report.blocks.map((b, i) => (
-          <div
-            key={`${b.type}-${i}`}
-            className={WIDE.includes(b.type) ? "md:col-span-2" : ""}
-          >
-            <BlockRenderer block={b} />
-          </div>
-        ))}
+      <div className="p-4">
+        <BlockTabs blocks={report.blocks} />
       </div>
 
       {report.follow_up_questions.length > 0 && (

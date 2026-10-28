@@ -26,3 +26,16 @@ export const BLOCKS: Registry = {
 
 // blocks that should take the full width of the grid
 export const WIDE: BlockType[] = ["stat", "table", "timeline", "accordion"];
+
+export const TAB_GROUPS: { id: string; label: string; types: BlockType[] }[] = [
+  { id: "overview", label: "📊 Overview", types: ["stat", "callout"] },
+  {
+    id: "coverage",
+    label: "✅ Coverage",
+    types: ["checklist", "table", "progress", "bullets"],
+  },
+  { id: "waiting", label: "⏳ Waiting periods", types: ["timeline"] },
+  { id: "details", label: "📖 Details", types: ["accordion"] },
+];
+// reports with this many blocks or fewer skip tabs
+export const TABS_MIN_BLOCKS = 4;
