@@ -59,3 +59,16 @@ def expand_with_page(
                 expanded.append(sib)
                 seen.add(bm25.doc_key(sib))
     return expanded
+
+
+def warm_up() -> None:
+    """Build the default BM25 index and open DB + embedding connections at startup."""
+    try:
+        vector_store.similarity_search("warm up", k=1)  # opens DB pool + OpenAI client
+        if not bm25.has_index("__all__"):
+            bm25.build_index("__all__", load_chunks(None))
+        print(
+            f"WARMUP done: {len(bm25.all_docs('__all__'))} chunks indexed", flush=True
+        )
+    except Exception as e:  # empty DB or no key shouldn't stop the server
+        print(f"WARMUP skipped: {e}", flush=True)

@@ -22,16 +22,15 @@ chain = REWRITE_PROMPT | llm
 
 
 def rewriter_node(state: AgentState) -> dict:
+    print(f"REWRITER history={len(state.get('messages', []))}", flush=True)
     question = state["question"]
-    history = state.get("messages", [])[-6:]  # last 3 Q&A pairs
+    history = state.get("messages", [])[-6:]
 
-    standalone = question
-    if history:
-        standalone = chain.invoke(
-            {"history": history, "question": question}
-        ).content.strip()
+    if not history:  # first question in the thread: nothing to resolve
+        return {"standalone_question": question, "messages": [HumanMessage(question)]}
 
+    result = chain.invoke({"history": history, "question": question})
     return {
-        "standalone_question": standalone,
-        "messages": [HumanMessage(content=question)],
+        "standalone_question": result.content.strip(),
+        "messages": [HumanMessage(question)],
     }

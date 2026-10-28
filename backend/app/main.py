@@ -8,8 +8,18 @@ from app.routers import agent, chat, documents, health
 from app.core.config import settings
 
 from app.core.timing import timing_middleware
+from contextlib import asynccontextmanager
+from app.retrieval.search import warm_up
 
-app = FastAPI(title="PolicyPilot AI")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    warm_up()  # runs once before the first request
+    yield  # app serves requests here
+    # (cleanup on shutdown would go after yield)
+
+
+app = FastAPI(title="PolicyPilot AI", lifespan=lifespan)
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)

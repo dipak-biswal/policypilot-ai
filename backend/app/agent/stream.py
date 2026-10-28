@@ -25,6 +25,7 @@ def stream_agent(
 ) -> Iterator[str]:
     final: dict = {}
     start = time.perf_counter()
+    last = start
     usage_cb = UsageMetadataCallbackHandler()
     config = {
         "configurable": {"thread_id": thread_id},
@@ -45,6 +46,10 @@ def stream_agent(
             ):
                 yield sse("token", {"text": msg.content})
         else:
+            now = time.perf_counter()
+            for node in chunk:
+                print(f"NODE {node} took {(now-last)*1000:.0f} ms", flush=True)
+            last = now
             for node, update in chunk.items():
                 if not update:
                     continue

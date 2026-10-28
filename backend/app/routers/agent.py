@@ -30,6 +30,6 @@ def run_agent(request: Request, body: AgentRequest) -> dict:
 @limiter.limit("10/minute")
 def agent_stream(request: Request, body: AgentRequest):
     return StreamingResponse(
-        stream_agent(body.question, body.source),
+        stream_agent(body.question, body.source,body.thread_id or "default"),
         media_type="text/event-stream",
     )
