@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import { uploadPdf } from "../api/documents";
 
 export function useUpload() {
@@ -7,17 +8,22 @@ export function useUpload() {
 
   async function upload(file: File): Promise<string | null> {
     setUploading(true);
-    setStatus("Uploading and indexing...");
+    const id = toast.loading(`Uploading ${file.name}...`, {
+      description: "Reading pages and building the search index",
+    });
 
     try {
       const res = await uploadPdf(file);
-      setStatus(
-        `Indexed ${res.filename}: ${res.page_count} pages, ${res.chunks_indexed} chunks`,
-      );
-      setTimeout(() => setStatus(""), 5000);
+      toast.success(`${res.filename} is ready`, {
+        id,
+        description: `${res.page_count} pages · ${res.chunks_indexed} chunks indexed`,
+      });
       return res.filename;
     } catch (error) {
-      setStatus(`Upload failed: ${(error as Error).message}`);
+      toast.error("Upload failed", {
+        id,
+        description: (error as Error).message,
+      });
       return null;
     } finally {
       setUploading(false);

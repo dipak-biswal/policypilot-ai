@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import type { Message } from "../types";
 import { Messagebubble } from "./MessageBubble";
 import { StarterChips } from "./StarterChips";
+import { AnswerSkeleton } from "./AnswerSkeleton";
 
 type Props = {
   messages: Message[];
@@ -60,9 +61,7 @@ export function ChatWindow({ messages, loading, onFollowUp }: Props) {
           />
         ))}
 
-        {loading && messages.at(-1)?.text === "" && (
-          <p className="text-sm text-slate-400 animate-pulse">Thinking...</p>
-        )}
+        {loading && messages.at(-1)?.text === "" && <AnswerSkeleton />}
         <div ref={bottomRef} />
       </div>
     </div>
