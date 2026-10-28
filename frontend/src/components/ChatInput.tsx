@@ -80,9 +80,8 @@ export function ChatInput({ onSend, disabled }: Props) {
           </button>
         </div>
         <p className="mt-2 text-center text-xs text-slate-400">
-          <kbd className="font-sans">Enter</kbd> to send ·{" "}
-          <kbd className="font-sans">Shift + Enter</kbd> for a new line ·
-          Answers cite policy pages
+          PolicyPilot AI can make mistakes. Check important details in your
+          policy document.
         </p>
       </div>
     </form>
