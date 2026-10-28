@@ -113,3 +113,7 @@ docker compose up --build
 ## Cost & latency tracking
 
 - Eeach answer shows response time, token count and estimated OpenAI cost (via LangChain's `UsageMetadataCallbackHandler`), about $0.0004 per query.
+
+## Latency optimisation
+
+profiled each LangGraph node, then warmed up BM25 and DB connections at startup (FastAPI lifespan), skipped the rewriter LLM call on new chats, and added a keyword fast-path to the router. Cold-start answers went from 16.6s to ~4s with no drop in RAGAS scores. Profiling also uncovered a bug where all chats shared one memory thread.
