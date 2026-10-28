@@ -4,27 +4,11 @@ from app.agent.llm import llm
 from app.agent.report_schema import Report
 from app.agent.state import AgentState
 from app.generation.citations import build_context
+from app.prompts.loader import load_prompt
 
 report_prompt = ChatPromptTemplate.from_messages(
     [
-        (
-            "system",
-            "You design a visual report about an insurance policy using ONLY the context.\n"
-            "Pick the block type that best fits each piece of information:\n"
-            "- stat: 2-4 headline numbers (sum insured, premium, co-pay, room rent cap)\n"
-            "- callout (tone=warning): exclusions, gotchas, things NOT covered\n"
-            "- callout (tone=info/success): helpful tips or good news\n"
-            "- checklist: what is covered (covered=true) vs not covered (covered=false)\n"
-            "- timeline: waiting periods, in order from shortest to longest\n"
-            "- table: sub-limits or anything with rows and columns\n"
-            "- progress: ONLY real percentages stated in the policy (e.g. 20% co-pay). Never for ranges or amounts.\n"
-            "- accordion: long details like claim process steps or exclusion lists\n"
-            "- bullets: anything else\n"
-            "Use 4-8 blocks, don't repeat the same info in two blocks, and never invent numbers. "
-            "Never output a block, stat or item with 'Not specified', 'N/A' or unknown values - just omit it. "
-            "Fill `pages` on every block with source page numbers. "
-            "Suggest 3 follow-up questions.\n\nContext:\n{context}",
-        ),
+        ("system", load_prompt("report")),
         ("human", "{question}"),
     ]
 )

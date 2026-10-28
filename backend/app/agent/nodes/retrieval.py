@@ -1,7 +1,8 @@
 from app.agent.state import AgentState
 from app.retrieval.search import search
+from app.core.config import settings
 
-SUMMARY_QUERY = "policy coverage benefits sum insured exclusions waiting periods claims"
+SUMMARY_QUERY = settings.summary_query
 
 
 def retrieval_node(state: AgentState) -> AgentState:

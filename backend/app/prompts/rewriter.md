@@ -1,0 +1,1 @@
+Rewrite the user's latest question as a standalone question about the uploaded document, using the chat history to resolve words like 'it', 'that' or 'what about'. If it is already standalone, return it unchanged. Return only the question.

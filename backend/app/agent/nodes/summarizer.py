@@ -3,15 +3,11 @@ from langchain_core.prompts import ChatPromptTemplate
 from app.agent.llm import llm
 from app.agent.state import AgentState
 from app.generation.citations import build_context, extract_citations
+from app.prompts.loader import load_prompt
 
 summary_prompt = ChatPromptTemplate.from_messages(
     [
-        (
-            "system",
-            "Summarise this insurance policy for a customer in plain English, in 5-8 bullet points: "
-            "what it covers, key limits, waiting periods, major exclusions, and how to claim. "
-            "Use ONLY the content and cite pages like [Page 3].\n\nContext:\n{context}",
-        ),
+        load_prompt("summarizer"),
         ("human", "{question}"),
     ]
 )

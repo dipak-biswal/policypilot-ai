@@ -3,16 +3,11 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
 from app.agent.llm import llm
 from app.agent.state import AgentState
+from app.prompts.loader import load_prompt
 
 REWRITE_PROMPT = ChatPromptTemplate.from_messages(
     [
-        (
-            "system",
-            "Rewrite the user's latest question as a standalone question about the "
-            "insurance policy, using the chat history to resolve words like 'it', "
-            "'that' or 'what about'. If it is already standalone, return it unchanged. "
-            "Return only the question.",
-        ),
+        load_prompt("rewriter"),
         MessagesPlaceholder("history"),
         ("human", "{question}"),
     ]

@@ -1,8 +1,9 @@
 import re
 
 from langchain_core.documents import Document
+from app.core.config import settings
 
-NOT_FOUND = "I couldn't find this in the uploaded policy."
+NOT_FOUND = settings.not_found_reply
 
 
 def build_context(docs: list[Document]) -> str:

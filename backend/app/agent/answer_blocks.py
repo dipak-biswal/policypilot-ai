@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field
 
 from app.agent.blocks import Block
 from app.agent.llm import llm
+from app.prompts.loader import load_prompt
 
 
 class AnswerBlocks(BaseModel):
@@ -14,20 +15,7 @@ class AnswerBlocks(BaseModel):
 
 prompt = ChatPromptTemplate.from_messages(
     [
-        (
-            "system",
-            "You add small visual blocks under a chat answer about an insurance policy.\n"
-            "Use ONLY facts already in the answer. Never invent numbers.\n"
-            "- NOT covered / exclusion / gotcha -> callout tone=warning\n"
-            "- covered with a condition -> callout tone=info\n"
-            "- several items covered/not covered -> checklist\n"
-            "- waiting periods -> timeline\n"
-            "- 2+ key numbers (limits, amounts) -> stat\n"
-            "Return an EMPTY list for simple, short or conversational answers. "
-            "Max 2 blocks, and don't just restate the answer word for word. "
-            "Copy page numbers from [Page N] markers into `pages`."
-            "Keep block text SHORT (max 12 words), like a headline, e.g. title 'Maternity', text 'Excluded - listed under exclusions'. ",
-        ),
+        ("system", load_prompt("answer_blocks")),
         ("human", "Question: {question}\n\nAnswer: {answer}"),
     ]
 )

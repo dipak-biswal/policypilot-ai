@@ -1,24 +1,27 @@
 import re
 
+from langchain_core.messages import AIMessage
 from pydantic import BaseModel, Field
 
 from app.agent.llm import llm
 from app.agent.state import AgentState, Intent
-from langchain_core.messages import AIMessage
+from app.core.config import settings
+from app.prompts.loader import load_prompt
 
 
 class RouteDecision(BaseModel):
     intent: Intent = Field(
         description=(
-            "qa: a specific question about the policy; "
-            "summary: wants a short overview of the policy; "
-            "report: wants a detailed structured report or comparison"
-            "chat: greetings, thanks or small talk not about the policy; "
+            "qa: a specific question about the document; "
+            "summary: wants a short overview of the document; "
+            "report: wants a detailed structured report or comparison; "
+            "chat: greetings, thanks or small talk not about the document"
         )
     )
 
 
 router_llm = llm.with_structured_output(RouteDecision, method="function_calling")
+ROUTER_PROMPT = load_prompt("router")
 
 REPORT_WORDS = re.compile(r"\b(report|compare|comparison|detailed|breakdown)\b", re.I)
 SUMMARY_WORDS = re.compile(
@@ -27,7 +30,6 @@ SUMMARY_WORDS = re.compile(
 QA_START = re.compile(
     r"^(is|are|does|do|can|will|what|when|how|which|who|am i|my)\b", re.I
 )
-
 GREETING = re.compile(
     r"^\s*(hi|hello|hey|thanks|thank you|ok|okay|bye)\b[\s!.]*$", re.I
 )
@@ -45,22 +47,20 @@ def fast_route(question: str) -> Intent | None:
 
 
 def router_node(state: AgentState) -> AgentState:
-
     if GREETING.match(state["question"]):
-        reply = "Hi! 👋 Ask me anything about your policy, like coverage, waiting periods or exclusions, or ask for a full report."
+        reply = settings.greeting_reply
         return {
             "intent": "chat",
             "answer": reply,
             "citations": [],
             "messages": [AIMessage(reply)],
         }
+
     question = state.get("standalone_question") or state["question"]
 
     intent = fast_route(question)
     if intent is None:
-        decision = router_llm.invoke(
-            f"Classify the user's request about an insurance policy.\n\nRequest: {question}"
-        )
+        decision = router_llm.invoke(ROUTER_PROMPT.replace("{question}", question))
         intent = decision.intent
 
     return {"intent": intent}

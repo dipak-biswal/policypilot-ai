@@ -2,11 +2,11 @@ import re
 
 from langchain_core.documents import Document
 from rank_bm25 import BM25Okapi
+from app.core.config import settings
 
 _cache: dict[str, tuple[BM25Okapi, list[Document]]] = {}
 
-STOPWORDS = {
-    # general English
+BASE_STOPWORDS = {
     "a",
     "an",
     "the",
@@ -43,21 +43,9 @@ STOPWORDS = {
     "as",
     "at",
     "from",
-    # insurance words that appear in nearly every chunk
-    "policy",
-    "claim",
-    "claims",
-    "insured",
-    "insurer",
-    "year",
-    "years",
-    "cover",
-    "covered",
-    "coverage",
-    "person",
-    "expenses",
-    "first",
 }
+
+STOPWORDS = BASE_STOPWORDS | {w.lower() for w in settings.domain_stopwords}
 
 
 def tokenize(text: str) -> list[str]:
