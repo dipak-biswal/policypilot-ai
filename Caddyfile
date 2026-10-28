@@ -1,0 +1,5 @@
+policypilot-dipak.duckdns.org {
+    reverse_proxy frontend:80 {
+        flush_interval -1
+    }
+}

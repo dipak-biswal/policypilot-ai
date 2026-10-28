@@ -1,5 +1,6 @@
 services:
   db:
+    restart: unless-stopped
     image: pgvector/pgvector:pg16
     container_name: policypilot-db
     environment:
@@ -16,6 +17,7 @@ services:
       retries: 5
 
   backend:
+    restart: unless-stopped
     build: ./backend
     container_name: policypilot-backend
     env_file: ./backend/.env
@@ -29,6 +31,7 @@ services:
         condition: service_healthy
 
   frontend:
+    restart: unless-stopped
     build:
       context: ./frontend
       args:
