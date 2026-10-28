@@ -20,14 +20,31 @@ export function ChatWindow({ messages, loading, onFollowUp }: Props) {
     <div className="flex-1 overflow-y-auto">
       <div className="mx-auto max-w-3xl px-4 py-6 flex flex-col gap-4">
         {messages.length === 0 && (
-          <div className="mt-20 text-center">
-            <p className="text-4xl">🛡️</p>
-            <h2 className="mt-3 text-lg font-semibold text-slate-700">
+          <div className="mt-16 text-center sm:mt-24">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 text-3xl shadow-lg shadow-indigo-200 dark:shadow-none">
+              🛡️
+            </div>
+            <h2 className="mt-5 text-2xl font-semibold text-slate-800 sm:text-3xl dark:text-slate-100">
               Ask anything about your policy
             </h2>
-            <p className="mt-1 text-sm text-slate-400">
-              Answers are grounded in the PDF with page citations.
+            <p className="mx-auto mt-2 max-w-md text-base text-slate-500 dark:text-slate-400">
+              Coverage, exclusions, waiting periods or claims. Every answer is
+              grounded in the PDF with page citations.
             </p>
+            <div className="mt-4 flex flex-wrap justify-center gap-2 text-xs">
+              {[
+                "📄 Page citations",
+                "📊 Summary reports",
+                "🧠 Remembers context",
+              ].map((b) => (
+                <span
+                  key={b}
+                  className="rounded-full bg-indigo-50 px-3 py-1 font-medium text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300"
+                >
+                  {b}
+                </span>
+              ))}
+            </div>
             <StarterChips onPick={onFollowUp} />
           </div>
         )}
