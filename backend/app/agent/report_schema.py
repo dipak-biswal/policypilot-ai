@@ -2,6 +2,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from app.agent.blocks import Block
+
 
 class TableData(BaseModel):
     columns: list[str]
@@ -27,5 +29,13 @@ class ReportSection(BaseModel):
 class Report(BaseModel):
     title: str
     summary: str
-    sections: list[ReportSection]
+    blocks: list[Block] = Field(
+        description=(
+            "4-8 UI blocks chosen to fit the content. Use stat for key numbers, "
+            "callout(warning) for exclusions or gotchas, checklist for covered/not covered, "
+            "timeline for waiting periods, table for limits/comparisons, progress for "
+            "percentages (co-pay, caps), accordion for long detail like claim steps, "
+            "bullets for anything else."
+        )
+    )
     follow_up_questions: list[str] = Field(description="3 useful follow-up questions")
