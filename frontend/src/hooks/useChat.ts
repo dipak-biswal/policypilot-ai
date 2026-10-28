@@ -32,6 +32,8 @@ export function useChat(source: string | null) {
           updateMessage(assistantId, (m) => ({ ...m, citations })),
         onMetrics: (metrics) =>
           updateMessage(assistantId, (m) => ({ ...m, metrics })),
+        onBlocks: (blocks) =>
+          updateMessage(assistantId, (m) => ({ ...m, blocks })),
       });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong.";

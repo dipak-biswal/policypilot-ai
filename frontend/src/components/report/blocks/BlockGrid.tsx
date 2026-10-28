@@ -2,7 +2,13 @@ import type { Block } from "@/types";
 import { BlockRenderer } from "./BlockRenderer";
 import { WIDE } from "./registry";
 
-export function BlockGrid({ blocks }: { blocks: Block[] }) {
+export function BlockGrid({
+  blocks,
+  hidePages = false,
+}: {
+  blocks: Block[];
+  hidePages?: boolean;
+}) {
   // decide which blocks span both columns
   const wide: boolean[] = [];
   let col = 0; // 0 = start of row, 1 = right column
@@ -17,7 +23,7 @@ export function BlockGrid({ blocks }: { blocks: Block[] }) {
     <div className="grid gap-3 md:grid-cols-2">
       {blocks.map((b, i) => (
         <div key={`${b.type}-${i}`} className={wide[i] ? "md:col-span-2" : ""}>
-          <BlockRenderer block={b} />
+          <BlockRenderer block={hidePages ? { ...b, pages: [] } : b} />
         </div>
       ))}
     </div>

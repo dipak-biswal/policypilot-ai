@@ -17,7 +17,7 @@ def qa_node(state: AgentState) -> AgentState:
     response = chain.invoke(
         {
             "context": build_context(docs),
-            "question": state.get("standalone_quetion") or state["question"],
+            "question": state.get("standalone_question") or state["question"],
         }
     )
 

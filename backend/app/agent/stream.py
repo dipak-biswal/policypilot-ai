@@ -7,6 +7,8 @@ from langchain_core.messages import AIMessageChunk
 import time
 from langchain_core.callbacks import UsageMetadataCallbackHandler
 from app.core.metrics import estimate_cost
+from app.agent.answer_blocks import pick_blocks
+from app.generation.citations import NOT_FOUND
 
 TEXT_NODES = {"qa", "summarizer"}
 
@@ -61,6 +63,12 @@ def stream_agent(
     if final.get("report"):
         yield sse("report", final["report"])
     yield sse("citations", final.get("citations", []))
+
+    answer = final.get("answer", "")
+    if final.get("intent") == "qa" and answer and answer != NOT_FOUND:
+        blocks = pick_blocks(final.get("standalone_question") or question, answer)
+        if blocks:
+            yield sse("blocks", blocks)
 
     metrics = _build_metrics(start, usage_cb.usage_metadata)
     print("METRICS", metrics, flush=True)

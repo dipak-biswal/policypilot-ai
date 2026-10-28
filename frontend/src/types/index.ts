@@ -15,6 +15,7 @@ export type Message = {
   citations?: Citation[];
   report?: Report | null;
   metrics?: Metrics;
+  blocks?: Block[];
 };
 
 export type Intent = "qa" | "summary" | "report";
@@ -50,6 +51,7 @@ export type AgentStreamEvent =
   | { event: "report"; data: Report }
   | { event: "citations"; data: Citation[] }
   | { event: "metrics"; data: Metrics }
+  | { event: "blocks"; data: Block[] }
   | { event: "done"; data: Record<string, never> };
 
 export interface Metrics {

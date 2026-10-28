@@ -1,6 +1,7 @@
 import type {
   AgentResponse,
   AgentStreamEvent,
+  Block,
   Citation,
   Intent,
   Metrics,
@@ -15,6 +16,7 @@ export interface AgentStreamHandlers {
   onReport?: (report: Report) => void;
   onCitations?: (citations: Citation[]) => void;
   onMetrics?: (m: Metrics) => void;
+  onBlocks?: (blocks: Block[]) => void;
 }
 
 export function runAgent(question: string) {
@@ -64,7 +66,9 @@ export async function streamAgent(
       case "metrics":
         h.onMetrics?.(e.data as Metrics);
         break;
-
+      case "blocks":
+        h.onBlocks?.(e.data as Block[]);
+        break;
       case "done":
         return;
     }
