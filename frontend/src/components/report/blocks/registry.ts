@@ -5,6 +5,9 @@ import { CalloutBlockView } from "./CalloutBlockView";
 import { ChecklistBlockView } from "./ChecklistBlockView";
 import { TimelineBlockView } from "./TimelineBlockView";
 import { TableBlockView } from "./TableBlockView";
+import { ProgressBlockView } from "./ProgressBlockView";
+import { AccordionBlockView } from "./AccordionBlockView";
+import { BulletsBlockView } from "./BulletsBlockView";
 
 type BlockOf<T extends BlockType> = Extract<Block, { type: T }>;
 
@@ -16,6 +19,9 @@ export const BLOCKS: Registry = {
   checklist: ChecklistBlockView,
   timeline: TimelineBlockView,
   table: TableBlockView,
+  progress: ProgressBlockView,
+  accordion: AccordionBlockView,
+  bullets: BulletsBlockView,
 };
 
 // blocks that should take the full width of the grid
