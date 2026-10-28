@@ -1,3 +1,6 @@
+import type { Block } from "./blocks";
+export * from "./blocks";
+
 export type Citation = { source: string; page: number; snippet: string };
 export type ChatResponse = { answer: string; citations: Citation[] };
 export type UploadResponse = {
@@ -30,7 +33,7 @@ export type ReportSection = {
 export type Report = {
   title: string;
   summary: string;
-  sections: ReportSection[];
+  blocks: Block[];
   follow_up_questions: string[];
 };
 
