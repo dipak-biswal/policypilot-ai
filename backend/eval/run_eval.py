@@ -10,7 +10,7 @@ from ragas.metrics.collections import AnswerRelevancy, ContextRecall, Faithfulne
 
 load_dotenv()
 
-from app.agent.graph import graph
+from app.agent.graph import graph, thread_config
 from app.generation.citations import NOT_FOUND
 
 from eval.checks import doc_text, is_refusal, page_hit
@@ -26,7 +26,7 @@ recall = ContextRecall(llm=judge)
 
 
 async def score_qa(item: dict) -> dict:
-    result = graph.invoke({"question": item["question"]})
+    result = graph.invoke({"question": item["question"]}, config=thread_config())
     docs = result.get("docs", [])
     contexts = [doc_text(d) for d in docs]
     answer = result.get("answer", "")
@@ -85,7 +85,9 @@ async def main() -> None:
     print("\n=== Off-topic refusal ===")
     refused = 0
     for q in OFF_TOPIC_SET:
-        ok = is_refusal(graph.invoke({"question": q}), NOT_FOUND)
+        ok = is_refusal(
+            graph.invoke({"question": q}, config=thread_config()), NOT_FOUND
+        )
         refused += ok
         print(f"{'PASS' if ok else 'FAIL'}  {q}")
 

@@ -22,7 +22,6 @@ chain = REWRITE_PROMPT | llm
 
 
 def rewriter_node(state: AgentState) -> dict:
-    print(f"REWRITER history={len(state.get('messages', []))}", flush=True)
     question = state["question"]
     history = state.get("messages", [])[-6:]
 
