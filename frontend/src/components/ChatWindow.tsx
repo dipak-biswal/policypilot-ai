@@ -21,7 +21,7 @@ export function ChatWindow({ messages, loading, onFollowUp }: Props) {
       <div className="mx-auto max-w-3xl px-4 py-6 flex flex-col gap-4">
         {messages.length === 0 && (
           <div className="mt-16 text-center sm:mt-24">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 text-3xl shadow-lg shadow-indigo-200 dark:shadow-none">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-br from-indigo-500 to-violet-500 text-3xl shadow-lg shadow-indigo-200 dark:shadow-none">
               🛡️
             </div>
             <h2 className="mt-5 text-2xl font-semibold text-slate-800 sm:text-3xl dark:text-slate-100">
