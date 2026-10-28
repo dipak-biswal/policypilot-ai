@@ -15,7 +15,7 @@ export function BlockTabs({ blocks }: { blocks: Block[] }) {
 
   return (
     <Tabs defaultValue={groups[0].id}>
-      <TabsList className="mb-3 w-full justify-start overflow-x-auto">
+      <TabsList className="mb-3 flex h-auto w-full flex-wrap justify-start gap-1">
         {groups.map((g) => (
           <TabsTrigger key={g.id} value={g.id}>
             {g.label}{" "}

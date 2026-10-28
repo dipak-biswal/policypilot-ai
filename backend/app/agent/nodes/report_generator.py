@@ -17,10 +17,11 @@ report_prompt = ChatPromptTemplate.from_messages(
             "- checklist: what is covered (covered=true) vs not covered (covered=false)\n"
             "- timeline: waiting periods, in order from shortest to longest\n"
             "- table: sub-limits or anything with rows and columns\n"
-            "- progress: percentages only (co-pay %, cap as % of sum insured)\n"
+            "- progress: ONLY real percentages stated in the policy (e.g. 20% co-pay). Never for ranges or amounts.\n"
             "- accordion: long details like claim process steps or exclusion lists\n"
             "- bullets: anything else\n"
             "Use 4-8 blocks, don't repeat the same info in two blocks, and never invent numbers. "
+            "Never output a block, stat or item with 'Not specified', 'N/A' or unknown values - just omit it. "
             "Fill `pages` on every block with source page numbers. "
             "Suggest 3 follow-up questions.\n\nContext:\n{context}",
         ),
