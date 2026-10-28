@@ -56,6 +56,8 @@ def stream_agent(
                 if not update:
                     continue
                 if node == "router":
+                    if update.get("intent") == "chat":
+                        yield sse("token", {"text": update["answer"]})
                     yield sse("intent", {"intent": update["intent"]})
 
                 final.update(update)

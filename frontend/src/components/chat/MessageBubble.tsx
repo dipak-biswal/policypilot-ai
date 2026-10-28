@@ -48,7 +48,7 @@ export function Messagebubble({
       <div
         className={`min-w-0 ${hasBlocks ? "flex-1 max-w-[90%]" : "max-w-[80%]"}`}
       >
-        <div className="group/bubble relative rounded-2xl rounded-tl-sm border border-slate-200 bg-white px-4 py-3 pr-10 text-sm leading-relaxed shadow-sm">
+        <div className="group/bubble relative rounded-2xl rounded-tl-sm border border-slate-200 bg-white px-4 py-3 pr-10 text-sm leading-relaxed shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
           {!streaming && message.text && (
             <div className="absolute right-2 top-2 opacity-100 transition-opacity md:opacity-0 md:group-hover/bubble:opacity-100">
               <CopyButton text={message.text} />

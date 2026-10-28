@@ -20,6 +20,10 @@ def thread_config(thread_id: str | None = None) -> dict:
     return {"configurable": {"thread_id": thread_id or str(uuid.uuid4())}}
 
 
+def after_router(state: AgentState) -> str:
+    return "end" if state["intent"] == "chat" else "retrieval"
+
+
 builder = StateGraph(AgentState)
 builder.add_node("router", router_node)
 builder.add_node("retrieval", retrieval_node)
@@ -35,6 +39,10 @@ builder.add_edge("router", "retrieval")
 builder.add_conditional_edges(
     "retrieval", pick_next, {"qa": "qa", "summarizer": "summarizer", "report": "report"}
 )
+builder.add_conditional_edges(
+    "router", after_router, {"end": END, "retrieval": "retrieval"}
+)
+
 builder.add_edge("qa", END)
 builder.add_edge("summarizer", END)
 builder.add_edge("report", END)
