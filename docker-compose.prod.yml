@@ -7,7 +7,7 @@ services:
     build:
       args:
         VITE_API_URL: /api
-    ports: !override ["80:80"]
+    ports: !reset []
   caddy:
     image: caddy:2
     restart: unless-stopped
