@@ -12,6 +12,7 @@ import { useChat } from "./hooks/useChat";
 import { deleteDocument } from "./api/documents";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
+import { MobileActions } from "./components/MobileActions";
 
 export default function App() {
   const { documents, selected, setSelected, addDocument, removeDocument } =
@@ -50,6 +51,12 @@ export default function App() {
     <>
       <Toaster position="top-right" richColors closeButton />
       <Layout
+        mobileActions={
+          <MobileActions
+            onNewChat={clear}
+            canClear={messages.length > 0 && !loading}
+          />
+        }
         sidebar={
           <>
             <UploadPanel

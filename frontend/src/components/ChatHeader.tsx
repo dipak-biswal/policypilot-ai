@@ -29,7 +29,7 @@ export function ChatHeader({ document, onNewChat, canClear }: Props) {
         <p className="text-sm text-slate-400">No document selected</p>
       )}
 
-      <div className="flex shrink-0 items-center gap-2">
+      <div className="hidden shrink-0 items-center gap-2 md:flex">
         <ThemeToggle />
         <button
           type="button"

@@ -1,8 +1,12 @@
 import { useState, type ReactNode } from "react";
 
-type Props = { sidebar: ReactNode; children: ReactNode };
+type Props = {
+  sidebar: ReactNode;
+  children: ReactNode;
+  mobileActions?: ReactNode;
+};
 
-export function Layout({ sidebar, children }: Props) {
+export function Layout({ sidebar, children, mobileActions }: Props) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -75,6 +79,7 @@ export function Layout({ sidebar, children }: Props) {
           <span className="font-semibold text-indigo-600 dark:text-indigo-400">
             PolicyPilot AI
           </span>
+          <div className="ml-auto flex items-center gap-1">{mobileActions}</div>
         </div>
         {children}
       </main>
