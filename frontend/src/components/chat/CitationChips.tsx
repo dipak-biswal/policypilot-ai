@@ -1,4 +1,4 @@
-import type { Citation } from "../types";
+import type { Citation } from "@/types";
 
 export function CitationChips({ citations }: { citations: Citation[] }) {
   if (citations.length === 0) return null;

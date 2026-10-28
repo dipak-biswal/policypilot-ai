@@ -1,6 +1,6 @@
-import type { Message } from "../types";
+import type { Message } from "@/types";
 import { CitationChips } from "./CitationChips";
-import { ReportView } from "./report/ReportView";
+import { ReportView } from "@/components/report/ReportView";
 import { Markdown } from "./Markdown";
 import { TypingDots } from "./TypingDots";
 import { CopyButton } from "./CopyButton";

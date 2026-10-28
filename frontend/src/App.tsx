@@ -1,18 +1,18 @@
 import { useState } from "react";
-import { UploadPanel } from "./components/UploadPanel";
-import { DocumentPicker } from "./components/DocumentPicker";
-import { ChatWindow } from "./components/ChatWindow";
-import { ChatInput } from "./components/ChatInput";
-import { Layout } from "./components/Layout";
-import { ChatHeader } from "./components/ChatHeader";
-import { ConfirmDeleteDialog } from "./components/ConfirmDeleteDialog";
+import { UploadPanel } from "@/components/documents/UploadPanel";
+import { DocumentPicker } from "@/components/documents/DocumentPicker";
+import { ChatWindow } from "@/components/chat/ChatWindow";
+import { ChatInput } from "@/components/chat/ChatInput";
+import { Layout } from "@/components/layout/Layout";
+import { ChatHeader } from "@/components/layout/ChatHeader";
+import { ConfirmDeleteDialog } from "@/components/documents/ConfirmDeleteDialog";
 import { useUpload } from "./hooks/useUpload";
 import { useDocuments } from "./hooks/useDocuments";
 import { useChat } from "./hooks/useChat";
 import { deleteDocument } from "./api/documents";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
-import { MobileActions } from "./components/MobileActions";
+import { MobileActions } from "@/components/layout/MobileActions";
 
 export default function App() {
   const { documents, selected, setSelected, addDocument, removeDocument } =
