@@ -106,14 +106,20 @@ docker compose up --build
   | Off-topic refusal | 2/2 |
   | Router accuracy | 5/5 |
 
-## Conversation memory
+### Conversation memory
 
 - A LangGraph rewriter node turns follow-ups ("what about cataract?") into standalone questions before retrieval. Chat history is kept per thread with a Postgres checkpointer (`PostgresSaver`), so it survives restarts and redeploys.
 
-## Cost & latency tracking
+### Cost & latency tracking
 
 - Eeach answer shows response time, token count and estimated OpenAI cost (via LangChain's `UsageMetadataCallbackHandler`), about $0.0004 per query.
 
-## Latency optimisation
+### Latency optimisation
 
 profiled each LangGraph node, then warmed up BM25 and DB connections at startup (FastAPI lifespan), skipped the rewriter LLM call on new chats, and added a keyword fast-path to the router. Cold-start answers went from 16.6s to ~4s with no drop in RAGAS scores. Profiling also uncovered a bug where all chats shared one memory thread.
+
+### 🎨 Generative UI
+
+The report agent returns **typed UI blocks** (Pydantic discriminated union, so the LLM picks the layout per answer).
+React renders them through a **component registry** (`type → shadcn component`): stat cards, callouts, checklist,
+timeline, table, progress, accordion and bullets, auto-grouped into tabs. Adding a block = 1 schema class + 1 component + 1 registry line.
