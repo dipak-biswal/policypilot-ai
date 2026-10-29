@@ -1,12 +1,14 @@
+import { Button } from "../ui/button";
 import { ThemeToggle } from "./ThemeToggle";
 
 type Props = {
   document: string | null;
   onNewChat: () => void;
   canClear: boolean;
+  onLogout: () => void;
 };
 
-export function ChatHeader({ document, onNewChat, canClear }: Props) {
+export function ChatHeader({ document, onNewChat, canClear, onLogout }: Props) {
   return (
     <header className="flex items-center justify-between gap-3 border-b border-slate-200 bg-white/80 px-5 py-3 backdrop-blur dark:border-slate-800 dark:bg-slate-900/80">
       {document ? (
@@ -49,6 +51,9 @@ export function ChatHeader({ document, onNewChat, canClear }: Props) {
           </svg>
           New chat
         </button>
+        <Button variant="ghost" size="sm" onClick={onLogout}>
+          Log out
+        </Button>
       </div>
     </header>
   );

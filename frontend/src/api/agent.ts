@@ -8,6 +8,7 @@ import type {
   Metrics,
   Report,
 } from "../types";
+import { authHeader } from "@/context/auth-store";
 import { API_URL, request } from "./client";
 import { readSSE } from "./sse";
 
@@ -37,10 +38,17 @@ export async function streamAgent(
 ) {
   const res = await fetch(`${API_URL}/agent/stream`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...authHeader() },
     body: JSON.stringify({ question, source, thread_id: threadId }),
   });
 
+  if (res.status === 401) {
+    window.dispatchEvent(new Event("auth:expired"));
+    throw new Error("Your session has expired. Please log in again.");
+  }
+  if (res.status === 400) {
+    throw new Error("Please select a document first.");
+  }
   if (res.status === 429) {
     throw new Error(
       "You're sending questions too fast. Please wait a minute and try again.",

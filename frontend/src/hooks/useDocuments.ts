@@ -1,16 +1,20 @@
 import { useEffect, useState } from "react";
+import { useAuth } from "@/context/useAuth";
 
-const KEY = "policypilot.documents";
+const BASE_KEY = "policypilot.documents";
 
 export function useDocuments() {
+  const { auth } = useAuth();
+  const key = `${BASE_KEY}:${auth?.email ?? "anon"}`;
+
   const [documents, setDocuments] = useState<string[]>(() =>
-    JSON.parse(localStorage.getItem(KEY) ?? "[]"),
+    JSON.parse(localStorage.getItem(key) ?? "[]"),
   );
   const [selected, setSelected] = useState<string | null>(documents[0] ?? null);
 
   useEffect(
-    () => localStorage.setItem(KEY, JSON.stringify(documents)),
-    [documents],
+    () => localStorage.setItem(key, JSON.stringify(documents)),
+    [key, documents],
   );
 
   const addDocument = (name: string) => {
