@@ -16,6 +16,7 @@ export type Message = {
   report?: Report | null;
   metrics?: Metrics;
   blocks?: Block[];
+  steps?: AgentStep[];
 };
 
 export type Intent = "qa" | "summary" | "report";
@@ -52,6 +53,7 @@ export type AgentStreamEvent =
   | { event: "citations"; data: Citation[] }
   | { event: "metrics"; data: Metrics }
   | { event: "blocks"; data: Block[] }
+  | { event: "step"; data: AgentStep }
   | { event: "done"; data: Record<string, never> };
 
 export interface Metrics {
@@ -60,3 +62,5 @@ export interface Metrics {
   output_tokens: number;
   cost_usd: number;
 }
+
+export type AgentStep = { step: string; detail?: string };

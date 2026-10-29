@@ -5,6 +5,7 @@ import { TypingDots } from "./TypingDots";
 import { CopyButton } from "./CopyButton";
 import { MetricsBadge } from "./MetricsBadge";
 import { BlockGrid } from "@/components/report/blocks/BlockGrid";
+import { AgentSteps } from "./AgentSteps";
 
 type Props = {
   message: Message;
@@ -58,6 +59,7 @@ export function Messagebubble({
             <TypingDots />
           ) : (
             <>
+              <AgentSteps steps={message.steps ?? []} done={!!message.text} />
               <Markdown text={message.text} citations={message.citations} />
               {streaming && (
                 <span className="ml-0.5 inline-block h-4 w-1.5 translate-y-0.5 animate-pulse bg-indigo-500" />

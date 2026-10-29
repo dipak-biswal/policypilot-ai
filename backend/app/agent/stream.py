@@ -37,8 +37,12 @@ def stream_agent(
     for mode, chunk in graph.stream(
         {"question": question, "source": source},
         config=config,
-        stream_mode=["messages", "updates"],
+        stream_mode=["messages", "updates", "custom"],
     ):
+        if mode == "custom":
+            yield sse("step", chunk)
+            continue
+
         if mode == "messages":
             msg, meta = chunk
             if (
