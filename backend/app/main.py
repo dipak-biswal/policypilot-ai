@@ -4,7 +4,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 from app.rate_limit import limiter
-from app.routers import agent, chat, documents, health
+from app.routers import agent, chat, documents, health, auth
 from app.core.config import settings
 
 from app.core.timing import timing_middleware
@@ -33,5 +33,5 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-for module in (health, documents, chat, agent):
+for module in (health, documents, chat, agent, auth):
     app.include_router(module.router)

@@ -23,5 +23,8 @@ class Settings(BaseSettings):
     )
     domain_stopwords: list[str] = []
 
+    jwt_secret: str = "change-me"
+    jwt_expire_minutes: int = 60 * 24
+
 
 settings = Settings()
