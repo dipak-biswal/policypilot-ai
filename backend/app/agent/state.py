@@ -17,3 +17,4 @@ class AgentState(TypedDict, total=False):
     citations: list[dict]
     report: dict
     source: str | None
+    profile: dict

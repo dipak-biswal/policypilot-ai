@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 from app.agent.llm import llm
 from app.agent.state import AgentState, Intent
 from app.core.config import settings
+from app.ingestion.profile_store import get_profile
 from app.prompts.loader import load_prompt
 
 
@@ -47,6 +48,9 @@ def fast_route(question: str) -> Intent | None:
 
 
 def router_node(state: AgentState) -> AgentState:
+    # load this document's profile once per question; later nodes read it from state
+    profile = get_profile(state.get("source")).model_dump()
+
     if GREETING.match(state["question"]):
         reply = settings.greeting_reply
         return {
@@ -54,13 +58,20 @@ def router_node(state: AgentState) -> AgentState:
             "answer": reply,
             "citations": [],
             "messages": [AIMessage(reply)],
+            "profile": profile,
         }
 
     question = state.get("standalone_question") or state["question"]
 
     intent = fast_route(question)
     if intent is None:
-        decision = router_llm.invoke(ROUTER_PROMPT.replace("{question}", question))
-        intent = decision.intent
+        prompt = ROUTER_PROMPT.replace("{question}", question).replace(
+            "{domain_hint}", profile["domain_hint"]
+        )
+        try:
+            intent = router_llm.invoke(prompt).intent
+        except Exception as e:  # malformed tool call -> safest default
+            print("ROUTER fallback to qa:", e, flush=True)
+            intent = "qa"
 
-    return {"intent": intent}
+    return {"intent": intent, "profile": profile}

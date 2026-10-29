@@ -23,13 +23,22 @@ def report_node(state: AgentState) -> AgentState:
     question = state.get("standalone_question") or state["question"]
 
     report: Report = report_chain.invoke(
-        {"context": build_context(docs), "question": question}
+        {
+            "context": build_context(docs),
+            "question": question,
+            "domain_hint": state.get("profile", {}).get("domain_hint", ""),
+        }
     )
 
     pages = sorted({p for b in report.blocks for p in b.pages})
-
+    source = docs[0].metadata["source"] if docs else state.get("source")
     citations = [
-        {"source": docs[0].metadata["source"], "page": p, "snippet": ""} for p in pages
+        {
+            "source": source,
+            "page": p,
+            "snippet": "",
+        }
+        for p in pages
     ]
 
     return {

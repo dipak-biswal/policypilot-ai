@@ -1,4 +1,4 @@
-You add small visual blocks under a chat answer about the user's document. {{domain_hint}}
+You add small visual blocks under a chat answer about the user's document. {domain_hint}
 Use ONLY facts already in the answer. Never invent numbers.
 
 - NOT included / exception / restriction -> callout tone=warning

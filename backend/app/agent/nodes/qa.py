@@ -18,6 +18,7 @@ def qa_node(state: AgentState) -> AgentState:
         {
             "context": build_context(docs),
             "question": state.get("standalone_question") or state["question"],
+            "domain_hint": state.get("profile", {}).get("domain_hint", ""),
         }
     )
 

@@ -7,7 +7,7 @@ from app.prompts.loader import load_prompt
 
 summary_prompt = ChatPromptTemplate.from_messages(
     [
-        load_prompt("summarizer"),
+        ("system", load_prompt("summarizer")),
         ("human", "{question}"),
     ]
 )
@@ -19,7 +19,11 @@ def summarizer_node(state: AgentState) -> AgentState:
     docs = state["docs"]
 
     response = summary_chain.invoke(
-        {"context": build_context(docs), "question": state["question"]}
+        {
+            "context": build_context(docs),
+            "question": state["question"],
+            "domain_hint": state.get("profile", {}).get("domain_hint", ""),
+        }
     )
 
     return {

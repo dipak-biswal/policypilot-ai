@@ -13,7 +13,7 @@ def chunk_id(doc: Document) -> str:
 
 def load_chunks(source: str | None) -> list[Document]:
     kwargs = {"filter": {"source": {"$eq": source}}} if source else {}
-    return vector_store.similarity_search("insurance policy", k=2000, **kwargs)
+    return vector_store.similarity_search("document", k=2000, **kwargs)
 
 
 def index_pages(filename: str, pages: list[dict]) -> int:

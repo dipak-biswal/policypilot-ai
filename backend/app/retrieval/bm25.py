@@ -2,9 +2,11 @@ import re
 
 from langchain_core.documents import Document
 from rank_bm25 import BM25Okapi
-from app.core.config import settings
 
-_cache: dict[str, tuple[BM25Okapi, list[Document]]] = {}
+from app.ingestion.profile_store import get_profile
+
+# key -> (index, docs, stopwords used for that index)
+_cache: dict[str, tuple[BM25Okapi, list[Document], set[str]]] = {}
 
 BASE_STOPWORDS = {
     "a",
@@ -45,11 +47,15 @@ BASE_STOPWORDS = {
     "from",
 }
 
-STOPWORDS = BASE_STOPWORDS | {w.lower() for w in settings.domain_stopwords}
+
+def stopwords_for(key: str) -> set[str]:
+    """Base English words + this document's own frequent words (from its profile)."""
+    source = key if key and key != "all" else None
+    return BASE_STOPWORDS | {w.lower() for w in get_profile(source).stopwords}
 
 
-def tokenize(text: str) -> list[str]:
-    return [w for w in re.findall(r"\w+", text.lower()) if w not in STOPWORDS]
+def tokenize(text: str, stopwords: set[str] = BASE_STOPWORDS) -> list[str]:
+    return [w for w in re.findall(r"\w+", text.lower()) if w not in stopwords]
 
 
 def has_index(key: str) -> bool:
@@ -57,7 +63,8 @@ def has_index(key: str) -> bool:
 
 
 def build_index(key: str, docs: list[Document]) -> None:
-    _cache[key] = (BM25Okapi([tokenize(d.page_content) for d in docs]), docs)
+    sw = stopwords_for(key)
+    _cache[key] = (BM25Okapi([tokenize(d.page_content, sw) for d in docs]), docs, sw)
 
 
 def invalidate() -> None:
@@ -71,9 +78,9 @@ def all_docs(key: str) -> list[Document]:
 def bm25_search(key: str, query: str, k: int) -> list[Document]:
     if key not in _cache:
         return []
-    index, docs = _cache[key]
+    index, docs, sw = _cache[key]
 
-    scores = index.get_scores(tokenize(query))
+    scores = index.get_scores(tokenize(query, sw))  # same stopwords as the index
 
     top = sorted(range(len(docs)), key=lambda i: scores[i], reverse=True)[:k]
     return [docs[i] for i in top if scores[i] > 0]
@@ -84,8 +91,7 @@ def doc_key(d: Document) -> str:
 
 
 def rrf(result_lists: list[list[Document]], k: int = 60) -> list[Document]:
-    """Reciprocal Rank Fusion: score = sum of 1 / (k + rank) accross lists."""
-
+    """Reciprocal Rank Fusion: score = sum of 1 / (k + rank) across lists."""
     scores: dict[str, float] = {}
     by_key: dict[str, Document] = {}
 

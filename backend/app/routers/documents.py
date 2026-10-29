@@ -1,9 +1,11 @@
-from fastapi import APIRouter, HTTPException, File, Request, UploadFile
+from fastapi import APIRouter, File, HTTPException, Request, UploadFile
 
 from app.ingestion.pdf import extract_pages
+from app.ingestion.profile import detect_profile
+from app.ingestion.profile_store import delete_profile, save_profile
 from app.rate_limit import limiter
-from app.schemas.documents import DeleteResponse, DocumentResponse, PageText
 from app.retrieval.indexing import delete_document, index_pages
+from app.schemas.documents import DeleteResponse, DocumentResponse, PageText
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
@@ -19,7 +21,11 @@ async def upload_document(
     file_bytes = await file.read()
     pages = extract_pages(file_bytes)
     filename = file.filename or "unknown.pdf"
-    chunks_indexed = index_pages(filename, pages)
+
+    save_profile(
+        filename, detect_profile(pages)
+    )  # profile first, so BM25 rebuild sees its stopwords
+    chunks_indexed = index_pages(filename, pages)  # clears the BM25 cache
 
     return DocumentResponse(
         filename=filename,
@@ -36,4 +42,5 @@ def remove_document(request: Request, filename: str) -> DeleteResponse:
 
     if deleted == 0:
         raise HTTPException(status_code=404, detail="Document not found")
+    delete_profile(filename)
     return DeleteResponse(filename=filename, chunks_deleted=deleted)

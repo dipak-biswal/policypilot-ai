@@ -1,14 +1,14 @@
+import time
 from collections.abc import Iterator
 
-from app.agent.graph import graph
-from app.utils.sse import sse
+from langchain_core.callbacks import UsageMetadataCallbackHandler
 from langchain_core.messages import AIMessageChunk
 
-import time
-from langchain_core.callbacks import UsageMetadataCallbackHandler
-from app.core.metrics import estimate_cost
 from app.agent.answer_blocks import pick_blocks
+from app.agent.graph import graph
+from app.core.metrics import estimate_cost
 from app.generation.citations import NOT_FOUND
+from app.utils.sse import sse
 
 TEXT_NODES = {"qa", "summarizer"}
 
@@ -26,8 +26,8 @@ def stream_agent(
     question: str, source: str | None = None, thread_id: str = "default"
 ) -> Iterator[str]:
     final: dict = {}
+    streamed = False  # did any text reach the client?
     start = time.perf_counter()
-    last = start
     usage_cb = UsageMetadataCallbackHandler()
     config = {
         "configurable": {"thread_id": thread_id},
@@ -46,21 +46,24 @@ def stream_agent(
                 and isinstance(msg, AIMessageChunk)
                 and msg.content
             ):
+                streamed = True
                 yield sse("token", {"text": msg.content})
-        else:
-            now = time.perf_counter()
-            for node in chunk:
-                print(f"NODE {node} took {(now-last)*1000:.0f} ms", flush=True)
-            last = now
-            for node, update in chunk.items():
-                if not update:
-                    continue
-                if node == "router":
-                    if update.get("intent") == "chat":
-                        yield sse("token", {"text": update["answer"]})
-                    yield sse("intent", {"intent": update["intent"]})
+            continue
 
-                final.update(update)
+        for node, update in chunk.items():
+            if not update:
+                continue
+            if node == "router":
+                if update.get("intent") == "chat":
+                    streamed = True
+                    yield sse("token", {"text": update["answer"]})
+                yield sse("intent", {"intent": update["intent"]})
+            elif node in TEXT_NODES and not streamed and update.get("answer"):
+                # node answered without calling the LLM (e.g. NOT_FOUND)
+                streamed = True
+                yield sse("token", {"text": update["answer"]})
+
+            final.update(update)
 
     if final.get("report"):
         yield sse("report", final["report"])
@@ -68,7 +71,11 @@ def stream_agent(
 
     answer = final.get("answer", "")
     if final.get("intent") == "qa" and answer and answer != NOT_FOUND:
-        blocks = pick_blocks(final.get("standalone_question") or question, answer)
+        blocks = pick_blocks(
+            final.get("standalone_question") or question,
+            answer,
+            final.get("profile", {}).get("domain_hint", ""),
+        )
         if blocks:
             yield sse("blocks", blocks)
 

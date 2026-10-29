@@ -25,10 +25,10 @@ blocks_chain = prompt | llm.with_structured_output(
 )
 
 
-def pick_blocks(question: str, answer: str) -> list[dict]:
+def pick_blocks(question: str, answer: str, domain_hint: str = "") -> list[dict]:
     try:
         result: AnswerBlocks = blocks_chain.invoke(
-            {"question": question, "answer": answer}
+            {"question": question, "answer": answer, "domain_hint": domain_hint}
         )
         return [b.model_dump() for b in result.blocks[:2]]
     except Exception as e:  # blocks are a bonus - never break the answer
