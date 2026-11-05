@@ -8,9 +8,11 @@ from app.agent.answer_blocks import pick_blocks
 from app.agent.graph import graph
 from app.core.metrics import estimate_cost
 from app.generation.citations import NOT_FOUND
+from app.guardrails.pipeline import run_input_guards
 from app.utils.sse import sse
 
 TEXT_NODES = {"qa", "summarizer"}
+BLOCKED_REPLY = "I can't help with that request. Ask a question about your uploaded document instead."
 
 
 def _build_metrics(start: float, usage: dict) -> dict:
@@ -33,6 +35,31 @@ def stream_agent(
         "configurable": {"thread_id": thread_id},
         "callbacks": [usage_cb],
     }
+
+    guard = run_input_guards(question)
+    if guard.pii_found:
+        yield sse(
+            "step",
+            {
+                "step": "🛡️ Redacted PII",
+                "detail": ", ".join(guard.pii_found),
+            },
+        )
+    if not guard.allowed:
+        yield sse(
+            "step",
+            {
+                "step": "🛡️ Blocked by guardrail",
+                "detail": guard.blocked_reason or "injection",
+            },
+        )
+        yield sse("intent", {"intent": "chat"})
+        yield sse("token", {"text": BLOCKED_REPLY})
+        yield sse("citations", [])
+        yield sse("metrics", _build_metrics(start, {}))
+        yield sse("done", {})
+        return
+    question = guard.question  # use redacted text for the rest of the graph
 
     for mode, chunk in graph.stream(
         {"question": question, "source": source},

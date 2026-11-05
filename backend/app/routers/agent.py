@@ -2,8 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 
 from app.agent.graph import graph, thread_config
-from app.agent.stream import stream_agent
+from app.agent.stream import stream_agent, BLOCKED_REPLY
 from app.auth.deps import get_current_user_id
+from app.guardrails.pipeline import run_input_guards
 from app.rate_limit import limiter
 from app.routers.documents import scoped_source
 from app.schemas.agent import AgentRequest
@@ -28,6 +29,20 @@ def run_agent(
     user_id: str = Depends(get_current_user_id),
 ) -> dict:
     source, thread_id = _scope(body, user_id)
+    guard = run_input_guards(body.question)
+    if not guard.allowed:
+        return {
+            "intent": "chat",
+            "answer": BLOCKED_REPLY,
+            "citations": [],
+            "report": None,
+            "follow_up_questions": [],
+            "guardrail": {
+                "blocked": True,
+                "reason": guard.blocked_reason,
+                "pii": guard.pii_found,
+            },
+        }
     result = graph.invoke(
         {"question": body.question, "source": source},
         config=thread_config(thread_id),
@@ -38,6 +53,9 @@ def run_agent(
         "citations": result.get("citations", []),
         "report": result.get("report"),
         "follow_up_questions": result.get("follow_up_questions", []),
+        "guardrail": (
+            {"blocked": False, "pii": guard.pii_found} if guard.pii_found else None
+        ),
     }
 
 
