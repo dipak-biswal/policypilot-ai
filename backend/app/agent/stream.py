@@ -8,11 +8,14 @@ from app.agent.answer_blocks import pick_blocks
 from app.agent.graph import graph
 from app.core.metrics import estimate_cost
 from app.generation.citations import NOT_FOUND
+from app.guardrails.output import moderate_output
 from app.guardrails.pipeline import run_input_guards
 from app.utils.sse import sse
 
 TEXT_NODES = {"qa", "summarizer"}
-BLOCKED_REPLY = "I can't help with that request. Ask a question about your uploaded document instead."
+BLOCKED_REPLY = (
+    "I can't help with that request. Ask a question about your uploaded document instead."
+)
 
 
 def _build_metrics(start: float, usage: dict) -> dict:
@@ -28,7 +31,7 @@ def stream_agent(
     question: str, source: str | None = None, thread_id: str = "default"
 ) -> Iterator[str]:
     final: dict = {}
-    streamed = False  # did any text reach the client?
+    streamed = False
     start = time.perf_counter()
     usage_cb = UsageMetadataCallbackHandler()
     config = {
@@ -40,10 +43,7 @@ def stream_agent(
     if guard.pii_found:
         yield sse(
             "step",
-            {
-                "step": "🛡️ Redacted PII",
-                "detail": ", ".join(guard.pii_found),
-            },
+            {"step": "🛡️ Redacted PII", "detail": ", ".join(guard.pii_found)},
         )
     if not guard.allowed:
         yield sse(
@@ -59,7 +59,7 @@ def stream_agent(
         yield sse("metrics", _build_metrics(start, {}))
         yield sse("done", {})
         return
-    question = guard.question  # use redacted text for the rest of the graph
+    question = guard.question
 
     for mode, chunk in graph.stream(
         {"question": question, "source": source},
@@ -90,17 +90,27 @@ def stream_agent(
                     yield sse("token", {"text": update["answer"]})
                 yield sse("intent", {"intent": update["intent"]})
             elif node in TEXT_NODES and not streamed and update.get("answer"):
-                # node answered without calling the LLM (e.g. NOT_FOUND)
                 streamed = True
                 yield sse("token", {"text": update["answer"]})
 
             final.update(update)
 
+    answer = final.get("answer", "")
+    if answer and answer != NOT_FOUND:
+        safe, issues = moderate_output(answer)
+        if issues:
+            yield sse(
+                "step",
+                {"step": "🛡️ Output moderated", "detail": ", ".join(issues)},
+            )
+            yield sse("token", {"text": "\n\n" + safe})
+            final["answer"] = safe
+            answer = safe
+
     if final.get("report"):
         yield sse("report", final["report"])
     yield sse("citations", final.get("citations", []))
 
-    answer = final.get("answer", "")
     if final.get("intent") == "qa" and answer and answer != NOT_FOUND:
         blocks = pick_blocks(
             final.get("standalone_question") or question,

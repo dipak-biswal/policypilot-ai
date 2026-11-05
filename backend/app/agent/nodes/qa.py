@@ -9,6 +9,8 @@ from app.generation.citations import NOT_FOUND, build_context, extract_citations
 from app.prompts.loader import load_prompt
 from app.retrieval.search import search
 
+from app.guardrails.pii import redact_pii
+
 QA_SYSTEM = load_prompt("qa_agent")
 MAX_ROUNDS = 4
 STEP_LABELS = {
@@ -31,7 +33,12 @@ def qa_node(state: AgentState) -> AgentState:
         """
         docs = search(query, source=source)
         found_docs.extend(docs)
-        return build_context(docs) or "No matching passages."
+        
+        raw =build_context(docs) or "No matching passages."
+
+        clean, _ = redact_pii(raw)
+
+        return clean
 
     tools = {t.name: t for t in (search_document, calculator, date_calculator)}
     agent_llm = llm.bind_tools(list(tools.values()))
