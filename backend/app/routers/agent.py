@@ -2,23 +2,24 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 
 from app.agent.graph import graph, thread_config
-from app.agent.stream import stream_agent, BLOCKED_REPLY
+from app.agent.stream import BLOCKED_REPLY, resume_agent, stream_agent
 from app.auth.deps import get_current_user_id
 from app.guardrails.pipeline import run_input_guards
 from app.rate_limit import limiter
 from app.routers.documents import scoped_source
-from app.schemas.agent import AgentRequest
+from app.schemas.agent import AgentRequest, ResumeRequest
 
 router = APIRouter(prefix="/agent", tags=["agent"])
 
 
-def _scope(body: AgentRequest, user_id: str) -> tuple[str, str]:
-    if not body.source:
-        # no source = "search all documents", which would cross users
+def _scope_source(user_id: str, source: str | None) -> str:
+    if not source:
         raise HTTPException(status_code=400, detail="Select a document first")
-    source = scoped_source(user_id, body.source)
-    thread_id = f"{user_id}:{body.thread_id or 'default'}"
-    return source, thread_id
+    return scoped_source(user_id, source)
+
+
+def _thread(user_id: str, thread_id: str | None) -> str:
+    return f"{user_id}:{thread_id or 'default'}"
 
 
 @router.post("")
@@ -28,7 +29,8 @@ def run_agent(
     body: AgentRequest,
     user_id: str = Depends(get_current_user_id),
 ) -> dict:
-    source, thread_id = _scope(body, user_id)
+    source = _scope_source(user_id, body.source)
+    thread_id = _thread(user_id, body.thread_id)
     guard = run_input_guards(body.question)
     if not guard.allowed:
         return {
@@ -44,7 +46,7 @@ def run_agent(
             },
         }
     result = graph.invoke(
-        {"question": body.question, "source": source},
+        {"question": guard.question, "source": source},
         config=thread_config(thread_id),
     )
     return {
@@ -66,8 +68,25 @@ def agent_stream(
     body: AgentRequest,
     user_id: str = Depends(get_current_user_id),
 ):
-    source, thread_id = _scope(body, user_id)
+    source = _scope_source(user_id, body.source)
+    thread_id = _thread(user_id, body.thread_id)
     return StreamingResponse(
         stream_agent(body.question, source, thread_id),
+        media_type="text/event-stream",
+    )
+
+
+@router.post("/resume")
+@limiter.limit("10/minute")
+def agent_resume(
+    request: Request,
+    body: ResumeRequest,
+    user_id: str = Depends(get_current_user_id),
+):
+    if body.action == "edit" and not (body.text or "").strip():
+        raise HTTPException(status_code=400, detail="Edited text is required")
+    thread_id = _thread(user_id, body.thread_id)
+    return StreamingResponse(
+        resume_agent(thread_id, {"action": body.action, "text": body.text}),
         media_type="text/event-stream",
     )

@@ -18,7 +18,7 @@ export default function Workspace({ onLogout }: { onLogout: () => void }) {
   const { documents, selected, setSelected, addDocument, removeDocument } =
     useDocuments();
   const { upload, status, uploading, clearStatus } = useUpload();
-  const { messages, loading, send, clear } = useChat(selected);
+  const { messages, loading, send, clear, respond } = useChat(selected);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
 
@@ -84,6 +84,7 @@ export default function Workspace({ onLogout }: { onLogout: () => void }) {
           messages={messages}
           loading={loading}
           onFollowUp={selected ? send : () => {}}
+          onRespond={respond}
         />
         <ChatInput onSend={send} disabled={loading || !selected} />
 

@@ -6,17 +6,26 @@ import { CopyButton } from "./CopyButton";
 import { MetricsBadge } from "./MetricsBadge";
 import { BlockGrid } from "@/components/report/blocks/BlockGrid";
 import { AgentSteps } from "./AgentSteps";
+import { ApprovalCard } from "./ApprovalCard";
 
 type Props = {
   message: Message;
   onFollowUp: (q: string) => void;
   streaming?: boolean;
+  loading?: boolean;
+  onRespond?: (
+    messageId: string,
+    action: "approve" | "edit" | "reject",
+    text?: string,
+  ) => void;
 };
 
 export function Messagebubble({
   message,
   onFollowUp,
   streaming = false,
+  loading = false,
+  onRespond,
 }: Props) {
   if (message.report) {
     return (
@@ -68,13 +77,23 @@ export function Messagebubble({
           )}
         </div>
 
+        {message.pendingApproval && message.interrupt && onRespond && (
+          <ApprovalCard
+            draft={message.interrupt.draft}
+            disabled={loading}
+            onApprove={() => onRespond(message.id, "approve")}
+            onReject={() => onRespond(message.id, "reject")}
+            onEdit={(text) => onRespond(message.id, "edit", text)}
+          />
+        )}
+
         {hasBlocks && (
           <div className="mt-3 w-full animate-in fade-in slide-in-from-bottom-1 duration-300">
             <BlockGrid blocks={message.blocks!} hidePages />
           </div>
         )}
 
-        {!streaming && message.text && (
+        {!streaming && message.text && !message.pendingApproval && (
           <div className="mt-2 flex flex-wrap items-center gap-2">
             {message.metrics && <MetricsBadge metrics={message.metrics} />}
           </div>

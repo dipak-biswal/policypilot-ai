@@ -17,6 +17,8 @@ export type Message = {
   metrics?: Metrics;
   blocks?: Block[];
   steps?: AgentStep[];
+  interrupt?: { type: string; draft: string; question: string } | null;
+  pendingApproval?: boolean;
 };
 
 export type Intent = "qa" | "summary" | "report";
@@ -54,7 +56,11 @@ export type AgentStreamEvent =
   | { event: "metrics"; data: Metrics }
   | { event: "blocks"; data: Block[] }
   | { event: "step"; data: AgentStep }
-  | { event: "done"; data: Record<string, never> };
+  | {
+      event: "interrupt";
+      data: { type: string; draft: string; question: string };
+    }
+  | { event: "done"; data: { pending?: boolean } };
 
 export interface Metrics {
   latency_ms: number;

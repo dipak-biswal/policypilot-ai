@@ -2,7 +2,7 @@ import time
 from collections.abc import Iterator
 
 from langchain_core.callbacks import UsageMetadataCallbackHandler
-from langchain_core.messages import AIMessageChunk
+from langgraph.types import Command
 
 from app.agent.answer_blocks import pick_blocks
 from app.agent.graph import graph
@@ -12,7 +12,6 @@ from app.guardrails.output import moderate_output
 from app.guardrails.pipeline import run_input_guards
 from app.utils.sse import sse
 
-TEXT_NODES = {"qa", "summarizer"}
 BLOCKED_REPLY = (
     "I can't help with that request. Ask a question about your uploaded document instead."
 )
@@ -27,85 +26,46 @@ def _build_metrics(start: float, usage: dict) -> dict:
     }
 
 
-def stream_agent(
-    question: str, source: str | None = None, thread_id: str = "default"
-) -> Iterator[str]:
-    final: dict = {}
-    streamed = False
-    start = time.perf_counter()
-    usage_cb = UsageMetadataCallbackHandler()
-    config = {
-        "configurable": {"thread_id": thread_id},
-        "callbacks": [usage_cb],
-    }
+def _payload_from_interrupts(interrupts) -> dict | None:
+    if not interrupts:
+        return None
+    first = interrupts[0]
+    value = getattr(first, "value", first)
+    return value if isinstance(value, dict) else None
 
-    guard = run_input_guards(question)
-    if guard.pii_found:
-        yield sse(
-            "step",
-            {"step": "🛡️ Redacted PII", "detail": ", ".join(guard.pii_found)},
-        )
-    if not guard.allowed:
-        yield sse(
-            "step",
-            {
-                "step": "🛡️ Blocked by guardrail",
-                "detail": guard.blocked_reason or "injection",
-            },
-        )
-        yield sse("intent", {"intent": "chat"})
-        yield sse("token", {"text": BLOCKED_REPLY})
-        yield sse("citations", [])
-        yield sse("metrics", _build_metrics(start, {}))
-        yield sse("done", {})
-        return
-    question = guard.question
 
-    for mode, chunk in graph.stream(
-        {"question": question, "source": source},
-        config=config,
-        stream_mode=["messages", "updates", "custom"],
-    ):
-        if mode == "custom":
-            yield sse("step", chunk)
-            continue
+def _interrupt_payload(config: dict, final: dict, question: str) -> dict | None:
+    snap = graph.get_state(config)
+    if not snap:
+        return None
 
-        if mode == "messages":
-            msg, meta = chunk
-            if (
-                meta.get("langgraph_node") in TEXT_NODES
-                and isinstance(msg, AIMessageChunk)
-                and msg.content
-            ):
-                streamed = True
-                yield sse("token", {"text": msg.content})
-            continue
+    payload = _payload_from_interrupts(getattr(snap, "interrupts", None))
+    if not payload:
+        for task in getattr(snap, "tasks", ()) or ():
+            payload = _payload_from_interrupts(getattr(task, "interrupts", None))
+            if payload:
+                break
+    if not payload:
+        return None
 
-        for node, update in chunk.items():
-            if not update:
-                continue
-            if node == "router":
-                if update.get("intent") == "chat":
-                    streamed = True
-                    yield sse("token", {"text": update["answer"]})
-                yield sse("intent", {"intent": update["intent"]})
-            elif node in TEXT_NODES and not streamed and update.get("answer"):
-                streamed = True
-                yield sse("token", {"text": update["answer"]})
+    payload.setdefault("type", "approve_answer")
+    payload.setdefault("draft", final.get("answer", ""))
+    payload.setdefault("question", question)
+    return payload
 
-            final.update(update)
 
+def _finish(final: dict, question: str, start: float, usage_cb) -> Iterator[str]:
     answer = final.get("answer", "")
     if answer and answer != NOT_FOUND:
         safe, issues = moderate_output(answer)
         if issues:
             yield sse(
                 "step",
-                {"step": "🛡️ Output moderated", "detail": ", ".join(issues)},
+                {"step": "Output moderated", "detail": ", ".join(issues)},
             )
-            yield sse("token", {"text": "\n\n" + safe})
-            final["answer"] = safe
             answer = safe
+            final["answer"] = safe
+        yield sse("token", {"text": answer})
 
     if final.get("report"):
         yield sse("report", final["report"])
@@ -120,7 +80,127 @@ def stream_agent(
         if blocks:
             yield sse("blocks", blocks)
 
-    metrics = _build_metrics(start, usage_cb.usage_metadata)
-    print("METRICS", metrics, flush=True)
-    yield sse("metrics", metrics)
+    yield sse("metrics", _build_metrics(start, usage_cb.usage_metadata))
     yield sse("done", {})
+
+
+def stream_agent(
+    question: str, source: str | None = None, thread_id: str = "default"
+) -> Iterator[str]:
+    final: dict = {}
+    start = time.perf_counter()
+    usage_cb = UsageMetadataCallbackHandler()
+    config = {"configurable": {"thread_id": thread_id}, "callbacks": [usage_cb]}
+
+    guard = run_input_guards(question)
+    if guard.pii_found:
+        yield sse(
+            "step",
+            {"step": "Redacted PII", "detail": ", ".join(guard.pii_found)},
+        )
+    if not guard.allowed:
+        yield sse(
+            "step",
+            {
+                "step": "Blocked by guardrail",
+                "detail": guard.blocked_reason or "injection",
+            },
+        )
+        yield sse("intent", {"intent": "chat"})
+        yield sse("token", {"text": BLOCKED_REPLY})
+        yield sse("citations", [])
+        yield sse("metrics", _build_metrics(start, {}))
+        yield sse("done", {})
+        return
+    question = guard.question
+
+    for mode, chunk in graph.stream(
+        {"question": question, "source": source},
+        config=config,
+        stream_mode=["updates", "custom"],
+    ):
+        if mode == "custom":
+            yield sse("step", chunk)
+            continue
+
+        if not isinstance(chunk, dict):
+            continue
+
+        # LangGraph emits: {'__interrupt__': (Interrupt(...),)}
+        if "__interrupt__" in chunk:
+            payload = _payload_from_interrupts(chunk["__interrupt__"]) or {
+                "type": "approve_answer",
+                "draft": final.get("answer", ""),
+                "question": question,
+            }
+            payload.setdefault("draft", final.get("answer", ""))
+            payload.setdefault("question", question)
+            payload.setdefault("type", "approve_answer")
+            yield sse(
+                "step",
+                {
+                    "step": "Waiting for your approval",
+                    "detail": "approve / edit / reject",
+                },
+            )
+            yield sse("interrupt", payload)
+            yield sse("done", {"pending": True})
+            return
+
+        for node, update in chunk.items():
+            if not update or not isinstance(update, dict):
+                continue
+            if node == "router":
+                yield sse("intent", {"intent": update["intent"]})
+                if update.get("intent") == "chat" and update.get("answer"):
+                    yield sse("token", {"text": update["answer"]})
+            final.update(update)
+
+    # Fallback if interrupt was not in the stream chunks
+    payload = _interrupt_payload(config, final, question)
+    if payload:
+        yield sse(
+            "step",
+            {
+                "step": "Waiting for your approval",
+                "detail": "approve / edit / reject",
+            },
+        )
+        yield sse("interrupt", payload)
+        yield sse("done", {"pending": True})
+        return
+
+    yield from _finish(final, question, start, usage_cb)
+
+
+def resume_agent(
+    thread_id: str,
+    decision: dict,
+) -> Iterator[str]:
+    """Continue after the user approves / edits / rejects."""
+    final: dict = {}
+    start = time.perf_counter()
+    usage_cb = UsageMetadataCallbackHandler()
+    config = {"configurable": {"thread_id": thread_id}, "callbacks": [usage_cb]}
+
+    for mode, chunk in graph.stream(
+        Command(resume=decision),
+        config=config,
+        stream_mode=["updates", "custom"],
+    ):
+        if mode == "custom":
+            yield sse("step", chunk)
+            continue
+        if isinstance(chunk, dict):
+            for node, update in chunk.items():
+                if node == "__interrupt__" or not isinstance(update, dict):
+                    continue
+                if update:
+                    final.update(update)
+
+    snap = graph.get_state(config)
+    if snap and snap.values:
+        final = {**final, **snap.values}
+
+    question = final.get("standalone_question") or final.get("question", "")
+    yield from _finish(final, question, start, usage_cb)

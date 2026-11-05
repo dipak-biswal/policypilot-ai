@@ -20,6 +20,11 @@ export interface AgentStreamHandlers {
   onMetrics?: (m: Metrics) => void;
   onBlocks?: (blocks: Block[]) => void;
   onStep?: (s: AgentStep) => void;
+  onInterrupt?: (data: {
+    type: string;
+    draft: string;
+    question: string;
+  }) => void;
 }
 
 export function runAgent(question: string) {
@@ -64,6 +69,53 @@ export async function streamAgent(
       case "intent":
         h.onIntent?.(e.data.intent);
         break;
+      case "token":
+        h.onToken?.(e.data.text);
+        break;
+      case "report":
+        h.onReport?.(e.data);
+        break;
+      case "citations":
+        h.onCitations?.(e.data);
+        break;
+      case "metrics":
+        h.onMetrics?.(e.data as Metrics);
+        break;
+      case "blocks":
+        h.onBlocks?.(e.data as Block[]);
+        break;
+      case "step":
+        h.onStep?.(e.data);
+        break;
+      case "interrupt":
+        h.onInterrupt?.(e.data);
+        break;
+      case "done":
+        return;
+    }
+  }
+}
+
+export async function resumeAgent(
+  threadId: string,
+  action: "approve" | "edit" | "reject",
+  text: string | undefined,
+  h: AgentStreamHandlers,
+) {
+  const res = await fetch(`${API_URL}/agent/resume`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeader() },
+    body: JSON.stringify({ thread_id: threadId, action, text }),
+  });
+  if (res.status === 401) {
+    window.dispatchEvent(new Event("auth:expired"));
+    throw new Error("Your session has expired. Please log in again.");
+  }
+  if (!res.ok || !res.body) throw new Error(`Resume failed: ${res.status}`);
+
+  for await (const raw of readSSE(res)) {
+    const e = raw as AgentStreamEvent;
+    switch (e.event) {
       case "token":
         h.onToken?.(e.data.text);
         break;

@@ -8,9 +8,19 @@ type Props = {
   messages: Message[];
   loading: boolean;
   onFollowUp: (q: string) => void;
+  onRespond?: (
+    messageId: string,
+    action: "approve" | "edit" | "reject",
+    text?: string,
+  ) => void;
 };
 
-export function ChatWindow({ messages, loading, onFollowUp }: Props) {
+export function ChatWindow({
+  messages,
+  loading,
+  onFollowUp,
+  onRespond,
+}: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -58,6 +68,8 @@ export function ChatWindow({ messages, loading, onFollowUp }: Props) {
             streaming={
               loading && i === messages.length - 1 && m.role === "assistant"
             }
+            loading={loading}
+            onRespond={onRespond}
           />
         ))}
 
