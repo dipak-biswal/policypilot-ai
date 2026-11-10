@@ -125,4 +125,11 @@ React renders them through a **component registry** (`type → shadcn component`
 timeline, table, progress, accordion and bullets, auto-grouped into tabs. Adding a block = 1 schema class + 1 component + 1 registry line.
 
 ### Human-in-the-loop
+
 After a draft answer, the agent pauses with LangGraph `interrupt()` until you Approve, Edit, or Reject. Resume goes through `POST /agent/resume` with `Command(resume=…)`. Useful demo for interview talk-tracks on controllable agents.
+
+### MCP server
+
+`backend/app/mcp_server.py` exposes `search_policy(source, query)` over MCP (stdio).
+Run: `cd backend && uv run python -m app.mcp_server`. Inspector: `npx @modelcontextprotocol/inspector uv run python -m app.mcp_server`.
+Cursor: copy `.cursor/mcp.example.json` to `.cursor/mcp.json` and adjust the path.
