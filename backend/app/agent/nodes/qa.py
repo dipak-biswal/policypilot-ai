@@ -33,8 +33,8 @@ def qa_node(state: AgentState) -> AgentState:
         """
         docs = search(query, source=source)
         found_docs.extend(docs)
-        
-        raw =build_context(docs) or "No matching passages."
+
+        raw = build_context(docs) or "No matching passages."
 
         clean, _ = redact_pii(raw)
 
@@ -72,9 +72,24 @@ def qa_node(state: AgentState) -> AgentState:
                     "detail": str(call["args"]),
                 }
             )
-            result = tools[call["name"]].invoke(call["args"])
+            tool = tools.get(call["name"])
+            if tool is None:
+                result = f"Error: unknown tool '{call['name']}'. Available: {', '.join(tools)}"
+            else:
+                try:
+                    result = tool.invoke(call["args"])
+                except Exception as e:
+                    result = f"Error: {type(e).__name__}: {e}. Fix the arguments and try again."
             messages.append(ToolMessage(content=str(result), tool_call_id=call["id"]))
         response = agent_llm.invoke(messages)
+
+    if response.tool_calls:  # out of rounds, still wants tools: force a final answer
+        messages.append(response)
+        for call in response.tool_calls:
+            messages.append(
+                ToolMessage(content="Tool limit reached.", tool_call_id=call["id"])
+            )
+        response = llm.invoke(messages)
 
     answer = response.content or NOT_FOUND
     return {
