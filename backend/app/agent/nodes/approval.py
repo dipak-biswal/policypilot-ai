@@ -28,6 +28,7 @@ def approval_node(state: AgentState) -> AgentState:
             "type": "approve_answer",
             "draft": draft,
             "question": question,
+            "issues": state.get("citation_issues", []),
         }
     )
     action = (decision or {}).get("action", "approve")

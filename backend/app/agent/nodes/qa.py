@@ -72,14 +72,18 @@ def qa_node(state: AgentState) -> AgentState:
                     "detail": str(call["args"]),
                 }
             )
-            tool = tools.get(call["name"])
-            if tool is None:
-                result = f"Error: unknown tool '{call['name']}'. Available: {', '.join(tools)}"
+            name = call["name"]
+            selected_tool = tools.get(call["name"])
+            if selected_tool is None:
+                result = (
+                    f"Error: unknown tool '{name}'. Use one of: {', '.join(tools)}."
+                )
             else:
                 try:
-                    result = tool.invoke(call["args"])
+                    result = selected_tool.invoke(call["args"])
                 except Exception as e:
                     result = f"Error: {type(e).__name__}: {e}. Fix the arguments and try again."
+
             messages.append(ToolMessage(content=str(result), tool_call_id=call["id"]))
         response = agent_llm.invoke(messages)
 
@@ -94,6 +98,7 @@ def qa_node(state: AgentState) -> AgentState:
     answer = response.content or NOT_FOUND
     return {
         "answer": answer,
+        "context": build_context(found_docs),
         "citations": extract_citations(answer, found_docs),
         "messages": [AIMessage(content=answer)],
     }

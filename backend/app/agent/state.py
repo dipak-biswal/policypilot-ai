@@ -18,3 +18,6 @@ class AgentState(TypedDict, total=False):
     report: dict
     source: str | None
     profile: dict
+    context: str
+    verified: bool
+    citation_issues: list[str]

@@ -17,7 +17,12 @@ export type Message = {
   metrics?: Metrics;
   blocks?: Block[];
   steps?: AgentStep[];
-  interrupt?: { type: string; draft: string; question: string } | null;
+  interrupt?: {
+    type: string;
+    draft: string;
+    question: string;
+    issues?: string[];
+  } | null;
   pendingApproval?: boolean;
 };
 
@@ -70,3 +75,10 @@ export interface Metrics {
 }
 
 export type AgentStep = { step: string; detail?: string };
+
+export interface ApprovalRequest {
+  type: "approve_answer";
+  question: string;
+  draft: string;
+  issues?: string[]; // from the citation checker subagent
+}

@@ -11,6 +11,7 @@ from app.agent.nodes.report_generator import report_node
 from app.agent.nodes.rewriter import rewriter_node
 from app.agent.checkpointer import build_checkpointer
 from app.agent.nodes.approval import approval_node
+from app.agent.nodes.verify import verify_node
 
 
 def pick_next(state: AgentState) -> str:
@@ -44,8 +45,10 @@ builder.add_conditional_edges(
 builder.add_conditional_edges(
     "router", after_router, {"end": END, "retrieval": "retrieval"}
 )
+builder.add_node("verify", verify_node)
 
-builder.add_edge("qa", "approval")
+builder.add_edge("qa", "verify")
+builder.add_edge("verify", "approval")
 builder.add_edge("approval", END)
 builder.add_edge("summarizer", END)
 builder.add_edge("report", END)

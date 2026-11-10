@@ -80,6 +80,7 @@ export function Messagebubble({
         {message.pendingApproval && message.interrupt && onRespond && (
           <ApprovalCard
             draft={message.interrupt.draft}
+            issues={message.interrupt.issues}
             disabled={loading}
             onApprove={() => onRespond(message.id, "approve")}
             onReject={() => onRespond(message.id, "reject")}

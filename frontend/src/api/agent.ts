@@ -24,6 +24,7 @@ export interface AgentStreamHandlers {
     type: string;
     draft: string;
     question: string;
+    issues?: string[];
   }) => void;
 }
 

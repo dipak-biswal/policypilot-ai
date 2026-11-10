@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 
 type Props = {
   draft: string;
+  issues?: string[];
   onApprove: () => void;
   onReject: () => void;
   onEdit: (text: string) => void;
@@ -11,6 +12,7 @@ type Props = {
 
 export function ApprovalCard({
   draft,
+  issues = [],
   onApprove,
   onReject,
   onEdit,
@@ -30,6 +32,20 @@ export function ApprovalCard({
           value={text}
           onChange={(e) => setText(e.target.value)}
         />
+        {issues.length > 0 && (
+          <div className="rounded-md border border-amber-300 bg-background/60 p-2 dark:border-amber-800">
+            <p className="mb-1 text-xs font-semibold text-amber-900 dark:text-amber-100">
+              ⚠️ Citation checker flagged {issues.length} issue
+              {issues.length > 1 ? "s" : ""}
+            </p>
+            <ul className="list-disc space-y-1 pl-5 text-xs text-amber-900 dark:text-amber-100">
+              {issues.map((issue, i) => (
+                <li key={i}>{issue}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <div className="flex gap-2">
           <Button
             size="sm"
