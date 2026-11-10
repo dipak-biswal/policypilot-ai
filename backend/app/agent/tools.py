@@ -33,6 +33,7 @@ def _eval(node):
 def calculator(expression: str) -> str:
     """Evaluate an arithmetic expression, e.g. '500000 * 0.2' or '(1800 - 500) / 2'.
     Use this for ANY maths on numbers from the document (percentages, co-pay, totals).
+    Do NOT use this to convert months or years to days; use date_calculator.
     """
     try:
         return str(round(_eval(ast.parse(expression, mode="eval").body), 2))
@@ -42,9 +43,12 @@ def calculator(expression: str) -> str:
 
 @tool
 def date_calculator(start: str, days: int = 0, months: int = 0) -> str:
-    """Add a period to a date. start is YYYY-MM-DD or 'today'. Returns the resulting date.
-    Use for questions like 'when does my 24-month waiting period end if I bought on 2025-03-01?'
-    """
+    """Add a period to a date, or convert months/years into exact days.
+    start is YYYY-MM-DD or 'today'. Returns the resulting date.
+    ALWAYS use this (not calculator) for anything involving months, years or dates,
+    because months have different lengths.
+    Example: 'when does a 24-month waiting period end if I bought on 2025-03-01?'"""
+
     d = date.today() if start == "today" else date.fromisoformat(start)
     month = d.month - 1 + months
     year, month = d.year + month // 12, month % 12 + 1
