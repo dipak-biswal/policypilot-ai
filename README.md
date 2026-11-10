@@ -123,3 +123,6 @@ profiled each LangGraph node, then warmed up BM25 and DB connections at startup 
 The report agent returns **typed UI blocks** (Pydantic discriminated union, so the LLM picks the layout per answer).
 React renders them through a **component registry** (`type → shadcn component`): stat cards, callouts, checklist,
 timeline, table, progress, accordion and bullets, auto-grouped into tabs. Adding a block = 1 schema class + 1 component + 1 registry line.
+
+### Human-in-the-loop
+After a draft answer, the agent pauses with LangGraph `interrupt()` until you Approve, Edit, or Reject. Resume goes through `POST /agent/resume` with `Command(resume=…)`. Useful demo for interview talk-tracks on controllable agents.

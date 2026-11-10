@@ -1,7 +1,8 @@
+import json
 from fastapi.testclient import TestClient
 from app.auth.deps import get_current_user_id
+from app.agent.nodes.approval import needs_approval
 from app.main import app
-import json
 
 client = TestClient(app)
 TEST_USER = "test-user"
@@ -61,3 +62,11 @@ def test_resume_reject_streams_discard(monkeypatch):
     )
     assert res.status_code == 200
     assert "discarded" in res.text
+
+
+def test_needs_approval_high_stakes():
+    assert needs_approval("maternity waiting period?", "24 months") is True
+
+
+def test_needs_approval_low_stakes():
+    assert needs_approval("What is the insurer name?", "HDFC Ergo") is False
