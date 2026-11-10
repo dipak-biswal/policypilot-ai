@@ -21,3 +21,4 @@ class AgentState(TypedDict, total=False):
     context: str
     verified: bool
     citation_issues: list[str]
+    usage: dict

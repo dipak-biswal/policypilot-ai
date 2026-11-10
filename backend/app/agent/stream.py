@@ -12,9 +12,22 @@ from app.guardrails.output import moderate_output
 from app.guardrails.pipeline import run_input_guards
 from app.utils.sse import sse
 
-BLOCKED_REPLY = (
-    "I can't help with that request. Ask a question about your uploaded document instead."
-)
+BLOCKED_REPLY = "I can't help with that request. Ask a question about your uploaded document instead."
+
+# Usage from the first half of a HITL run, waiting for /resume.
+# In-memory: fine for one container; use Redis/Postgres for multiple replicas.
+_pending_usage: dict[str, dict] = {}
+
+
+def _merge_usage(a: dict, b: dict) -> dict:
+    """Add per-model usage dicts: {'gpt-4o-mini': {'input_tokens': .., ...}}."""
+    out = {m: dict(u) for m, u in a.items()}
+    for model, u in b.items():
+        cur = out.setdefault(model, {})
+        for k, v in u.items():
+            if isinstance(v, (int, float)):
+                cur[k] = cur.get(k, 0) + v
+    return out
 
 
 def _build_metrics(start: float, usage: dict) -> dict:
@@ -54,7 +67,7 @@ def _interrupt_payload(config: dict, final: dict, question: str) -> dict | None:
     return payload
 
 
-def _finish(final: dict, question: str, start: float, usage_cb) -> Iterator[str]:
+def _finish(final: dict, question: str, start: float, usage: dict) -> Iterator[str]:
     answer = final.get("answer", "")
     if answer and answer != NOT_FOUND:
         safe, issues = moderate_output(answer)
@@ -80,7 +93,7 @@ def _finish(final: dict, question: str, start: float, usage_cb) -> Iterator[str]
         if blocks:
             yield sse("blocks", blocks)
 
-    yield sse("metrics", _build_metrics(start, usage_cb.usage_metadata))
+    yield sse("metrics", _build_metrics(start, usage))
     yield sse("done", {})
 
 
@@ -145,6 +158,7 @@ def stream_agent(
             )
             yield sse("interrupt", payload)
             yield sse("done", {"pending": True})
+            _pending_usage[thread_id] = dict(usage_cb.usage_metadata)  # NEW
             return
 
         for node, update in chunk.items():
@@ -168,9 +182,10 @@ def stream_agent(
         )
         yield sse("interrupt", payload)
         yield sse("done", {"pending": True})
+        _pending_usage[thread_id] = dict(usage_cb.usage_metadata)  # NEW
         return
 
-    yield from _finish(final, question, start, usage_cb)
+    yield from _finish(final, question, start, usage_cb.usage_metadata)  # CHANGED
 
 
 def resume_agent(
@@ -203,4 +218,8 @@ def resume_agent(
         final = {**final, **snap.values}
 
     question = final.get("standalone_question") or final.get("question", "")
-    yield from _finish(final, question, start, usage_cb)
+
+    # NEW: add usage from before the interrupt to this request's usage
+    saved = _pending_usage.pop(thread_id, {})
+    usage = _merge_usage(saved, usage_cb.usage_metadata)
+    yield from _finish(final, question, start, usage)
