@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "policypilot": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "C:\\Users\\Dipak\\Desktop\\policypilot-ai\\backend",
+        "python",
+        "-m",
+        "app.mcp_server"
+      ]
+    }
+  }
+}
